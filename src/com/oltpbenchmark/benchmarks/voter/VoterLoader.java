@@ -52,7 +52,7 @@ public class VoterLoader extends Loader {
         "TX","TX","TX","TX","TX","TX","TX","TX","TX","TX","UT","UT","UT","VA","VA",
         "VA","VA","VA","VA","VA","VA","VT","WA","WA","WA","WA","WA","WA","WI","WI",
         "WI","WI","WI","WV","WY"};
-    
+
     public VoterLoader(VoterBenchmark benchmark, Connection conn) {
         super(benchmark, conn);
     }
@@ -60,20 +60,20 @@ public class VoterLoader extends Loader {
     @Override
     public void load() throws SQLException {
         String[] contestants = VoterConstants.CONTESTANT_NAMES_CSV.split(",");
-        
+
         int numContestants = ((VoterBenchmark)this.benchmark).numContestants;
-        
+
         Table tbl = getTableCatalog(VoterConstants.TABLENAME_CONTESTANTS);
-        PreparedStatement ps = this.conn.prepareStatement(SQLUtil.getInsertSQL(tbl));
+        PreparedStatement ps = this.conn.prepareStatement(SQLUtil.getInsertSQL(tbl, false));
         for (int i = 0; i < numContestants; i++) {
             ps.setInt(1, i + 1);
             ps.setString(2, contestants[i]);
             ps.addBatch();
         }
         ps.executeBatch();
-        
+
         tbl = getTableCatalog(VoterConstants.TABLENAME_LOCATIONS);
-        ps = this.conn.prepareStatement(SQLUtil.getInsertSQL(tbl));
+        ps = this.conn.prepareStatement(SQLUtil.getInsertSQL(tbl, false));
         for (int i = 0; i < areaCodes.length; i++) {
             ps.setShort(1, areaCodes[i]);
             ps.setString(2, states[i]);
