@@ -7,7 +7,7 @@
 --IF OBJECT_ID('CONTESTANTS') IS NOT NULL DROP table CONTESTANTS;
 
 
--- Map of Area Codes and States for geolocation classification of incoming calls
+-- classes table holds all the ship classes and their reachability
 CREATE TABLE classes
 (
   class integer NOT NULL,
@@ -18,8 +18,7 @@ CREATE TABLE classes
   )
 );
 
--- votes table holds every valid vote.
---   voters are not allowed to submit more than <x> votes, x is passed to client application
+-- solarsystems table holds all solarsystems and their size
 CREATE TABLE solarsystems
 (
   ssid integer NOT NULL,
@@ -30,7 +29,6 @@ CREATE TABLE solarsystems
     ssid
   )
 );
-CREATE INDEX idx_votes_phone_number ON votes (phone_number);
 
 -- ships table holds every ship, and their position
 CREATE TABLE ships
