@@ -27,18 +27,17 @@
  *  OTHER DEALINGS IN THE SOFTWARE.                                        *
  ***************************************************************************/
 
-package com.oltpbenchmark.benchmarks.voter;
+package com.oltpbenchmark.benchmarks.test;
 
 public abstract class TestConstants {
 
-	public static final int MAX_VOTES = 1000;
-	public static final int NUM_CONTESTANTS = 6;
+	public static final int NUM_CLASSES = 6;
 
-	public static final String TABLENAME_CONTESTANTS = "CONTESTANTS";
-	public static final String TABLENAME_LOCATIONS = "AREA_CODE_STATE";
+	public static final String TABLENAME_SHIPS = "ships";
+	public static final String TABLENAME_CLASSES = "classes";
+	public static final String TABLENAME_SOLARSYSTEMS = "solarsystems";
 
 	// Initialize some common constants and variables
-    public static final String CONTESTANT_NAMES_CSV = "Edwina Burnam,Tabatha Gehling,Kelly Clauss,Jessie Alloway," +
-											   "Alana Bregman,Jessie Eichman,Allie Rogalski,Nita Coster," +
-											   "Kurt Walser,Ericka Dieter,Loraine NygrenTania Mattioli";
+    public static final String CLASSES_CSV = "Missile boat, Torpedo boat, Minesweeper," +
+      "Medium landing craft, Landing Ship Tank";
 }
