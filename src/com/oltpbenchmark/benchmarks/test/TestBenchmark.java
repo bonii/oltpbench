@@ -12,27 +12,27 @@ import com.oltpbenchmark.api.Loader;
 import com.oltpbenchmark.api.Worker;
 import com.oltpbenchmark.benchmarks.voter.procedures.Vote;
 
-public class VoterBenchmark extends BenchmarkModule {
+public class TestBenchmark extends BenchmarkModule {
 
     public final int numContestants;
-    
-    public VoterBenchmark(WorkloadConfiguration workConf) {
+
+    public TestBenchmark(WorkloadConfiguration workConf) {
         super("voter", workConf, true);
-        numContestants = VoterUtil.getScaledNumContestants(workConf.getScaleFactor());
+        numContestants = TestUtil.getScaledNumContestants(workConf.getScaleFactor());
     }
 
     @Override
     protected List<Worker> makeWorkersImpl(boolean verbose) throws IOException {
         List<Worker> workers = new ArrayList<Worker>();
         for (int i = 0; i < workConf.getTerminals(); ++i) {
-            workers.add(new VoterWorker(this, i));
+            workers.add(new TestWorker(this, i));
         }
         return workers;
     }
 
     @Override
     protected Loader makeLoaderImpl(Connection conn) throws SQLException {
-        return new VoterLoader(this, conn);
+        return new TestLoader(this, conn);
     }
 
     @Override
