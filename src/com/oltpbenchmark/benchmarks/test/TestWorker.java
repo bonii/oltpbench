@@ -23,8 +23,8 @@ public class TestWorker extends Worker {
         assert (proc != null);
         Random rng = new Random();
         int ship_id = rng.nextInt(TestConstants.NUM_SHIPS) + 1
-        int move_x = rng.nextInt(TestConstants.MAX_MOVE);
-        int move_y = rng.nextInt(TestConstants.MAX_MOVE);
+        int move_x = rng.nextInt(TestConstants.MAX_MOVE * 2) - TestConstants.MAX_MOVE;
+        int move_y = rng.nextInt(TestConstants.MAX_MOVE * 2) - TestConstants.MAX_MOVE;
         proc.run(conn, ship_id, move_x, move_y);
         conn.commit();
         return TransactionStatus.SUCCESS;
