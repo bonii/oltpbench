@@ -10,11 +10,12 @@
 -- classes table holds all the ship classes and their reachability
 CREATE TABLE classes
 (
-  class integer NOT NULL,
-  reachability integer NOT NULL,
+  cid integer           NOT NULL,
+  class varchar(40)     NOT NULL,
+  reachability integer  NOT NULL,
   PRIMARY KEY
   (
-    class
+    cid
   )
 );
 
@@ -33,11 +34,11 @@ CREATE TABLE solarsystems
 -- ships table holds every ship, and their position
 CREATE TABLE ships
 (
-  sid integer NOT NULL,
-  x integer NOT NULL,
-  y integer NOT NULL,
+  sid integer   NOT NULL,
+  x integer     NOT NULL,
+  y integer     NOT NULL,
   class integer NOT NULL REFERENCES classes (class),
-  ssid integer NOT NULL REFERENCES solarsystems (ssid),
+  ssid integer  NOT NULL REFERENCES solarsystems (ssid),
   PRIMARY KEY
   (
     sid
