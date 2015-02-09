@@ -37,7 +37,7 @@ CREATE TABLE ships
   sid integer   NOT NULL,
   x integer     NOT NULL,
   y integer     NOT NULL,
-  class integer NOT NULL REFERENCES classes (class),
+  cid integer NOT NULL REFERENCES classes (class),
   ssid integer  NOT NULL REFERENCES solarsystems (ssid),
   PRIMARY KEY
   (
