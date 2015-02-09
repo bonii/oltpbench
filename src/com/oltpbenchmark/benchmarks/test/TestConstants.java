@@ -33,6 +33,8 @@ public abstract class TestConstants {
 
   public static final int NUM_CLASSES = 5;
   public static final int NUM_SOLARSYSTEMS = 6;
+  public static final int MAX_MOVE = 110000;
+  public static final int NUM_SHIPS = 1000;
 
   public static final String TABLENAME_SHIPS = "ships";
   public static final String TABLENAME_CLASSES = "classes";
