@@ -31,13 +31,26 @@ package com.oltpbenchmark.benchmarks.test;
 
 public abstract class TestConstants {
 
-	public static final int NUM_CLASSES = 6;
+  public static final int NUM_CLASSES = 5;
+  public static final int NUM_SOLARSYSTEMS = 6;
 
-	public static final String TABLENAME_SHIPS = "ships";
-	public static final String TABLENAME_CLASSES = "classes";
-	public static final String TABLENAME_SOLARSYSTEMS = "solarsystems";
+  public static final String TABLENAME_SHIPS = "ships";
+  public static final String TABLENAME_CLASSES = "classes";
+  public static final String TABLENAME_SOLARSYSTEMS = "solarsystems";
 
-	// Initialize some common constants and variables
-    public static final String CLASSES_CSV = "Missile boat, Torpedo boat, Minesweeper," +
+  // Initialize some common constants and variables
+  public static final String CLASSES_CSV = "Missile boat, Torpedo boat, Minesweeper," +
       "Medium landing craft, Landing Ship Tank";
+
+
+  // Ship classes data
+  private static final String[] classes = new String[] {
+    "Missile boat", "Torpedo boat", "Minesweeper", "Medium landing craft", "Landing Ship Tank" };
+
+  private static final int[] reachability = {200, 450, 900, 3000, 1200};
+
+  // Solarsystem size data
+  private static final int[] x_max = {100000, 20000, 35000, 10000, 88000, 50000};
+  private static final int[] y_max = {100000, 15000, 15000, 80000, 20000, 40000};
+
 }
