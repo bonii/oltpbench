@@ -35,7 +35,7 @@ public class TestBenchmark extends BenchmarkModule {
 
     @Override
     protected Package getProcedurePackageImpl() {
-       return Test.class.getPackage();
+       return Move.class.getPackage();
     }
 
 }
