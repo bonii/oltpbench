@@ -33,82 +33,123 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-
+import java.lang.Math;
 import com.oltpbenchmark.api.Procedure;
 import com.oltpbenchmark.api.SQLStmt;
 
-public class Vote extends Procedure {
-	
+public class Move extends Procedure {
+
     // potential return codes
-    public static final long VOTE_SUCCESSFUL = 0;
-    public static final long ERR_INVALID_CONTESTANT = 1;
+    public static final long MOVE_SUCCESSFUL = 0;
+    public static final long ERR_INVALID_SHIP = 1;
     public static final long ERR_VOTER_OVER_VOTE_LIMIT = 2;
-	
-    // Checks if the vote is for a valid contestant
-    public final SQLStmt checkContestantStmt = new SQLStmt(
-	   "SELECT contestant_number FROM CONTESTANTS WHERE contestant_number = ?;"
+
+    // Get ship entry
+    public final SQLStmt getShipStmt = new SQLStmt(
+	"SELECT * FROM " + TestConstants.TABLENAME_SHIPS  +" WHERE sid = ?;"
     );
-	
-    // Checks if the voter has exceeded their allowed number of votes
-    public final SQLStmt checkVoterStmt = new SQLStmt(
-		"SELECT COUNT(*) FROM VOTES WHERE phone_number = ?;"
+
+    // Get ship class entry
+    public final SQLStmt getClassStmt = new SQLStmt(
+        "SELECT * FROM " + TestConstants.TABLENAME_CLASSES + " WHERE cid = ?;"
     );
-	
-    // Checks an area code to retrieve the corresponding state
-    public final SQLStmt checkStateStmt = new SQLStmt(
-		"SELECT state FROM AREA_CODE_STATE WHERE area_code = ?;"
+
+    // Get solarsystem entry
+    public final SQLStmt getSolarStmt = new SQLStmt(
+        "SELECT xmax, ymax FROM " + TestConstants.TABLENAME_SOLARSYSTEMS + " WHERE area_code = ?;"
     );
-	
-    // Records a vote
-    public final SQLStmt insertVoteStmt = new SQLStmt(
-		"INSERT INTO VOTES (vote_id, phone_number, state, contestant_number, created) " +
-    "VALUES (?, ?, ?, ?, NOW());"
+
+    // Check single tile if free
+    public final SQLStmt checkTileStmt = new SQLStmt(
+        "SELECT x, y FROM " + TestConstants.TABLENAME_SHIPS + " WHERE x = ? AND y = ?;"
     );
-	
-    public long run(Connection conn, long voteId, long phoneNumber, int contestantNumber, long maxVotesPerPhoneNumber) throws SQLException {
-		
-        PreparedStatement ps = getPreparedStatement(conn, checkContestantStmt);
-        ps.setInt(1, contestantNumber);
+
+    // Update ship position
+    public final SQLStmt updateShipPosStmt = new SQLStmt(
+        "UPDATE " + TestConstants.TABLENAME_SHIPS + " SET x = ?, y = ? WHERE sid = ?;"
+    );
+
+    public long run(Connection conn, int shidId, int move_x, int move_y) throws SQLException {
+
+        PreparedStatement ps = getPreparedStatement(conn, getShipStmt);
+        ps.setInt(1, shipId);
         ResultSet rs = ps.executeQuery();
+        int x;
+        int y;
+        int cid;
+        int ssid;
         try {
             if (!rs.next()) {
-                return ERR_INVALID_CONTESTANT;    
+                return ERR_INVALID_SHIP;
+            } else {
+                x = rs.getInt(2);
+                y = rs.getInt(3);
+                cid = rs.getInt(4);
+                ssid = rs.getInt(5);
             }
         } finally {
             rs.close();
         }
-        
-        ps = getPreparedStatement(conn, checkVoterStmt);
-        ps.setLong(1, phoneNumber);
-        rs = ps.executeQuery();
-        boolean hasVoterEnt = rs.next();
-        try {
-            if (hasVoterEnt && rs.getLong(1) >= maxVotesPerPhoneNumber) {
-                return ERR_VOTER_OVER_VOTE_LIMIT;
-            }
-        } finally {
-            rs.close();
-        }
-        
-        ps = getPreparedStatement(conn, checkStateStmt);
-        ps.setShort(1, (short)(phoneNumber / 10000000l));
-        rs = ps.executeQuery();
-        // Some sample client libraries use the legacy random phone generation that mostly
-        // created invalid phone numbers. Until refactoring, re-assign all such votes to
-        // the "XX" fake state (those votes will not appear on the Live Statistics dashboard,
-        // but are tracked as legitimate instead of invalid, as old clients would mostly get
-        // it wrong and see all their transactions rejected).
-        final String state = rs.next() ? rs.getString(1) : "XX";
-        rs.close();
 
-        ps = getPreparedStatement(conn, insertVoteStmt);
-        ps.setLong(1, voteId);
-        ps.setLong(2, phoneNumber);
-        ps.setString(3, state);
-        ps.setInt(4, contestantNumber);
+        ps = getPreparedStatement(conn, getClassStmt);
+        ps.setInt(1, cid);
+        rs = ps.executeQuery();
+
+        int reachability;
+        try {
+            if (!rs.next()) {
+                return ERR_INVALID_CLASS;
+            } else {
+                reachability = rs.getInt(1);
+        } finally {
+            rs.close();
+        }
+
+        // Cap the movement to reachability
+        // TODO min is not correct since move_x/y can be negative < -reachability
+        move_x = Math.min(move_x, reachability);
+        move_y = Math.min(move_y, reachability);
+
+        ps = getPreparedStatement(conn, getSolarStmt);
+        ps.setInt(1, ssid);
+        rs = ps.executeQuery();
+
+        int x_max;
+        int y_max;
+        try {
+            if (!rs.next()) {
+                return ERR_INVALID_SOLARSYSTEM;
+            } else {
+                x_max = rs.getInt(1);
+                y_max = rs.getInt(2);
+            }
+        } finally {
+            rs.close();
+        }
+
+        int new_x = Math.min(x_max, x + x_move);
+        int new_y = Math.min(y_max, y + y_move);
+        ps = getPreparedStatement(conn, checkTileStmt);
+        ps.setInt(1, new_x);
+        ps.setInt(2, new_y);
+        rs = ps.executeQuery();
+
+        try {
+            if (rs.next()) {
+                new_x = x;
+                new_y = y;
+            }
+        } finally {
+            rs.close();
+        }
+
+        ps = getPreparedStatement(conn, updateShipPosStmt);
+        ps.setInt(1, new_x);
+        ps.setInt(2, new_y);
+        ps.setInt(3, sid);
         ps.execute();
-		
-        // Set the return value to 0: successful vote
-        return VOTE_SUCCESSFUL;
+
+        // Set the return value to 0: successful move
+        return MOVE_SUCCESSFUL;
     }
 }
