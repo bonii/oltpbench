@@ -32,7 +32,7 @@ public class TestLoader extends Loader {
         tbl = getTableCatalog(TestConstants.TABLENAME_SOLARSYSTEMS);
         ps = this.conn.prepareStatement(SQLUtil.getInsertSQL(tbl, false));
         for (int i = 0; i < TestConstants.NUM_SOLARSYSTEMS; i++) {
-            ps.setInt(1, i + 1]); // Solarsystem ID(ssid)
+            ps.setInt(1, i + 1); // Solarsystem ID(ssid)
             ps.setString(2, x_max[i]); // x max
             ps.setString(3, y_max[i]); // y max
             ps.addBatch();
@@ -51,6 +51,7 @@ public class TestLoader extends Loader {
             ps.setInt(3, y);      // y
             ps.setInt(3, rng.nextInt(TestConstants.NUM_CLASSES) + 1); // Class ID(cid)
             ps.setInt(4, ssid);   // Solarsystem ID(ssid)
+        }
     }
 
 }
