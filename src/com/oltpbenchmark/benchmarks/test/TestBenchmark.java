@@ -14,11 +14,9 @@ import com.oltpbenchmark.benchmarks.test.procedures.Move;
 
 public class TestBenchmark extends BenchmarkModule {
 
-    public final int numContestants;
 
     public TestBenchmark(WorkloadConfiguration workConf) {
         super("test", workConf, true);
-        numContestants = TestUtil.getScaledNumContestants(workConf.getScaleFactor());
     }
 
     @Override
