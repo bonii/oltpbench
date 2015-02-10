@@ -1,4 +1,4 @@
-package com.oltpbenchmark.benchmarks.voter;
+package com.oltpbenchmark.benchmarks.test;
 
 import java.sql.SQLException;
 import java.util.Random;

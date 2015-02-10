@@ -27,7 +27,7 @@
 // number of allowed votes.
 //
 
-package com.oltpbenchmark.benchmarks.voter.procedures;
+package com.oltpbenchmark.benchmarks.test.procedures;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;

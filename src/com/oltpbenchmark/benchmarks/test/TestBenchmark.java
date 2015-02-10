@@ -1,4 +1,4 @@
-package com.oltpbenchmark.benchmarks.voter;
+package com.oltpbenchmark.benchmarks.test;
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -10,14 +10,14 @@ import com.oltpbenchmark.WorkloadConfiguration;
 import com.oltpbenchmark.api.BenchmarkModule;
 import com.oltpbenchmark.api.Loader;
 import com.oltpbenchmark.api.Worker;
-import com.oltpbenchmark.benchmarks.voter.procedures.Vote;
+import com.oltpbenchmark.benchmarks.test.procedures.Move;
 
 public class TestBenchmark extends BenchmarkModule {
 
     public final int numContestants;
 
     public TestBenchmark(WorkloadConfiguration workConf) {
-        super("voter", workConf, true);
+        super("test", workConf, true);
         numContestants = TestUtil.getScaledNumContestants(workConf.getScaleFactor());
     }
 
@@ -37,7 +37,7 @@ public class TestBenchmark extends BenchmarkModule {
 
     @Override
     protected Package getProcedurePackageImpl() {
-       return Vote.class.getPackage();
+       return Test.class.getPackage();
     }
 
 }

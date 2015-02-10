@@ -1,4 +1,4 @@
-package com.oltpbenchmark.benchmarks.voter;
+package com.oltpbenchmark.benchmarks.test;
 
 public class TestUtil {
     /**
