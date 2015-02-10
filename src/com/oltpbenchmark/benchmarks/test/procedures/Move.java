@@ -101,6 +101,7 @@ public class Move extends Procedure {
                 return ERR_INVALID_CLASS;
             } else {
                 reachability = rs.getInt(1);
+            }
         } finally {
             rs.close();
         }
@@ -127,7 +128,7 @@ public class Move extends Procedure {
         try {
             if (!rs.next()) {
                 return ERR_INVALID_SOLARSYSTEM;
-            } else {
+            } else {
                 x_max = rs.getInt(1);
                 y_max = rs.getInt(2);
             }
