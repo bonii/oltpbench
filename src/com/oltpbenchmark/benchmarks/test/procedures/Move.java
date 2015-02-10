@@ -106,9 +106,17 @@ public class Move extends Procedure {
         }
 
         // Cap the movement to reachability
-        // TODO min is not correct since move_x/y can be negative < -reachability
-        move_x = Math.min(move_x, reachability);
-        move_y = Math.min(move_y, reachability);
+
+        if (move_x < 0) {
+            move_x = Math.max(move_x, -reachability);
+        } else {
+            move_x = Math.min(move_x, reachability);
+        }
+        if (move_y < 0) {
+            move_y = Math.max(move_y, -reachability);
+        } else {
+            move_y = Math.min(move_y, reachability);
+        }
 
         ps = getPreparedStatement(conn, getSolarStmt);
         ps.setInt(1, ssid);
