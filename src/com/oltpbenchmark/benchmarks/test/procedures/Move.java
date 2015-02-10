@@ -36,13 +36,15 @@ import java.sql.SQLException;
 import java.lang.Math;
 import com.oltpbenchmark.api.Procedure;
 import com.oltpbenchmark.api.SQLStmt;
+import com.oltpbenchmark.benchmarks.test.TestConstants;
 
 public class Move extends Procedure {
 
     // potential return codes
     public static final long MOVE_SUCCESSFUL = 0;
     public static final long ERR_INVALID_SHIP = 1;
-    public static final long ERR_VOTER_OVER_VOTE_LIMIT = 2;
+    public static final long ERR_INVALID_CLASS = 2;
+    public static final long ERR_INVALID_SOLARSYSTEM = 3;
 
     // Get ship entry
     public final SQLStmt getShipStmt = new SQLStmt(
@@ -69,7 +71,7 @@ public class Move extends Procedure {
         "UPDATE " + TestConstants.TABLENAME_SHIPS + " SET x = ?, y = ? WHERE sid = ?;"
     );
 
-    public long run(Connection conn, int shidId, int move_x, int move_y) throws SQLException {
+    public long run(Connection conn, int shipId, int move_x, int move_y) throws SQLException {
 
         PreparedStatement ps = getPreparedStatement(conn, getShipStmt);
         ps.setInt(1, shipId);
@@ -136,8 +138,8 @@ public class Move extends Procedure {
             rs.close();
         }
 
-        int new_x = Math.min(x_max, x + x_move);
-        int new_y = Math.min(y_max, y + y_move);
+        int new_x = Math.min(x_max, x + move_x);
+        int new_y = Math.min(y_max, y + move_y);
         ps = getPreparedStatement(conn, checkTileStmt);
         ps.setInt(1, new_x);
         ps.setInt(2, new_y);
@@ -155,7 +157,7 @@ public class Move extends Procedure {
         ps = getPreparedStatement(conn, updateShipPosStmt);
         ps.setInt(1, new_x);
         ps.setInt(2, new_y);
-        ps.setInt(3, sid);
+        ps.setInt(3, shipId);
         ps.execute();
 
         // Set the return value to 0: successful move
