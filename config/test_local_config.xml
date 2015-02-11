@@ -24,7 +24,7 @@
     <!-- Voter Procedures declaration -->
     <transactiontypes>
         <transactiontype>
-                <name>Vote</name>
+                <name>Move</name>
         </transactiontype>
     </transactiontypes>
 </parameters>
