@@ -23,8 +23,8 @@ CREATE TABLE classes
 CREATE TABLE solarsystems
 (
   ssid integer NOT NULL,
-  xmax integer NOT NULL,
-  ymax integer NOT NULL,
+  x_max integer NOT NULL,
+  y_max integer NOT NULL,
   PRIMARY KEY
   (
     ssid
@@ -37,7 +37,7 @@ CREATE TABLE ships
   sid integer   NOT NULL,
   x integer     NOT NULL,
   y integer     NOT NULL,
-  cid integer NOT NULL REFERENCES classes (class),
+  class integer NOT NULL REFERENCES classes (cid),
   ssid integer  NOT NULL REFERENCES solarsystems (ssid),
   PRIMARY KEY
   (
