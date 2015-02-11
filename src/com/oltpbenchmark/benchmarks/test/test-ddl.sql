@@ -1,12 +1,5 @@
--- Drop all views / tables
-
---IF OBJECT_ID('V_VOTES_BY_PHONE_NUMBER') IS NOT NULL DROP view V_VOTES_BY_PHONE_NUMBER;
---IF OBJECT_ID('V_VOTES_BY_CONTESTANT_NUMBER_STATE') IS NOT NULL DROP view V_VOTES_BY_CONTESTANT_NUMBER_STATE;
---IF OBJECT_ID('AREA_CODE_STATE') IS NOT NULL DROP table AREA_CODE_STATE;
---IF OBJECT_ID('VOTES') IS NOT NULL DROP table VOTES;
---IF OBJECT_ID('CONTESTANTS') IS NOT NULL DROP table CONTESTANTS;
-
-DROP TABLE IF EXISTS classes, solarsystems, ships;
+-- Drop tables before creating them
+--DROP TABLE IF EXISTS classes, solarsystems, ships;
 
 
 -- classes table holds all the ship classes and their reachability
