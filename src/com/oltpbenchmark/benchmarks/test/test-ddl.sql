@@ -6,6 +6,8 @@
 --IF OBJECT_ID('VOTES') IS NOT NULL DROP table VOTES;
 --IF OBJECT_ID('CONTESTANTS') IS NOT NULL DROP table CONTESTANTS;
 
+DROP TABLE IF EXISTS classes, solarsystems, ships;
+
 
 -- classes table holds all the ship classes and their reachability
 CREATE TABLE classes
