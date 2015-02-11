@@ -58,7 +58,7 @@ public class Move extends Procedure {
 
     // Get solarsystem entry
     public final SQLStmt getSolarStmt = new SQLStmt(
-        "SELECT xmax, ymax FROM " + TestConstants.TABLENAME_SOLARSYSTEMS + " WHERE area_code = ?;"
+        "SELECT x_max, y_max FROM " + TestConstants.TABLENAME_SOLARSYSTEMS + " WHERE ssid = ?;"
     );
 
     // Check single tile if free
@@ -82,6 +82,7 @@ public class Move extends Procedure {
         int ssid;
         try {
             if (!rs.next()) {
+                System.out.println("Ship: " + Integer.toString(shipId) + "\n");
                 return ERR_INVALID_SHIP;
             } else {
                 x = rs.getInt(2);
@@ -100,6 +101,7 @@ public class Move extends Procedure {
         int reachability;
         try {
             if (!rs.next()) {
+                System.out.println("Class: " + Integer.toString(cid) + "\n");
                 return ERR_INVALID_CLASS;
             } else {
                 reachability = rs.getInt(1);
@@ -129,6 +131,7 @@ public class Move extends Procedure {
         int y_max;
         try {
             if (!rs.next()) {
+                System.out.println("Solarsystem: " + Integer.toString(ssid) + "\n");
                 return ERR_INVALID_SOLARSYSTEM;
             } else {
                 x_max = rs.getInt(1);

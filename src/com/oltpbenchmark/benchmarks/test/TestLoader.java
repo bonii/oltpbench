@@ -49,8 +49,9 @@ public class TestLoader extends Loader {
             ps.setInt(1, i + 1);  // Ship ID(sid)
             ps.setInt(2, x);      // x
             ps.setInt(3, y);      // y
-            ps.setInt(3, rng.nextInt(TestConstants.NUM_CLASSES) + 1); // Class ID(cid)
-            ps.setInt(4, ssid);   // Solarsystem ID(ssid)
+            ps.setInt(4, rng.nextInt(TestConstants.NUM_CLASSES) + 1); // Class ID(cid)
+            ps.setInt(5, ssid);   // Solarsystem ID(ssid)
+            ps.addBatch();
         }
         ps.executeBatch();
     }
