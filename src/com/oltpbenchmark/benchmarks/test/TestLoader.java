@@ -52,6 +52,7 @@ public class TestLoader extends Loader {
             ps.setInt(3, rng.nextInt(TestConstants.NUM_CLASSES) + 1); // Class ID(cid)
             ps.setInt(4, ssid);   // Solarsystem ID(ssid)
         }
+        ps.executeBatch();
     }
 
 }
