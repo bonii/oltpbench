@@ -1,4 +1,4 @@
-package com.oltpbenchmark.benchmarks.test;
+package com.oltpbenchmark.benchmarks.galaxy;
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -10,27 +10,27 @@ import com.oltpbenchmark.WorkloadConfiguration;
 import com.oltpbenchmark.api.BenchmarkModule;
 import com.oltpbenchmark.api.Loader;
 import com.oltpbenchmark.api.Worker;
-import com.oltpbenchmark.benchmarks.test.procedures.Move;
+import com.oltpbenchmark.benchmarks.galaxy.procedures.Move;
 
-public class TestBenchmark extends BenchmarkModule {
+public class GalaxyBenchmark extends BenchmarkModule {
 
 
-    public TestBenchmark(WorkloadConfiguration workConf) {
-        super("test", workConf, true);
+    public GalaxyBenchmark(WorkloadConfiguration workConf) {
+        super("galaxy", workConf, true);
     }
 
     @Override
     protected List<Worker> makeWorkersImpl(boolean verbose) throws IOException {
         List<Worker> workers = new ArrayList<Worker>();
         for (int i = 0; i < workConf.getTerminals(); ++i) {
-            workers.add(new TestWorker(this, i));
+            workers.add(new GalaxyWorker(this, i));
         }
         return workers;
     }
 
     @Override
     protected Loader makeLoaderImpl(Connection conn) throws SQLException {
-        return new TestLoader(this, conn);
+        return new GalaxyLoader(this, conn);
     }
 
     @Override

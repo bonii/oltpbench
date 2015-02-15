@@ -23,11 +23,11 @@
 
 //
 // Accepts a vote, enforcing business logic: make sure the vote is for a valid
-// contestant and that the voter (phone number of the caller) is not above the
+// congalaxyant and that the voter (phone number of the caller) is not above the
 // number of allowed votes.
 //
 
-package com.oltpbenchmark.benchmarks.test.procedures;
+package com.oltpbenchmark.benchmarks.galaxy.procedures;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -36,7 +36,7 @@ import java.sql.SQLException;
 import java.lang.Math;
 import com.oltpbenchmark.api.Procedure;
 import com.oltpbenchmark.api.SQLStmt;
-import com.oltpbenchmark.benchmarks.test.TestConstants;
+import com.oltpbenchmark.benchmarks.galaxy.GalaxyConstants;
 
 public class Move extends Procedure {
 
@@ -48,27 +48,27 @@ public class Move extends Procedure {
 
     // Get ship entry
     public final SQLStmt getShipStmt = new SQLStmt(
-	"SELECT * FROM " + TestConstants.TABLENAME_SHIPS  +" WHERE sid = ?;"
+	"SELECT * FROM " + GalaxyConstants.TABLENAME_SHIPS  +" WHERE sid = ?;"
     );
 
     // Get ship class entry
     public final SQLStmt getClassStmt = new SQLStmt(
-        "SELECT * FROM " + TestConstants.TABLENAME_CLASSES + " WHERE cid = ?;"
+        "SELECT * FROM " + GalaxyConstants.TABLENAME_CLASSES + " WHERE cid = ?;"
     );
 
     // Get solarsystem entry
     public final SQLStmt getSolarStmt = new SQLStmt(
-        "SELECT x_max, y_max FROM " + TestConstants.TABLENAME_SOLARSYSTEMS + " WHERE ssid = ?;"
+        "SELECT x_max, y_max FROM " + GalaxyConstants.TABLENAME_SOLARSYSTEMS + " WHERE ssid = ?;"
     );
 
     // Check single tile if free
     public final SQLStmt checkTileStmt = new SQLStmt(
-        "SELECT x, y FROM " + TestConstants.TABLENAME_SHIPS + " WHERE x = ? AND y = ?;"
+        "SELECT x, y FROM " + GalaxyConstants.TABLENAME_SHIPS + " WHERE x = ? AND y = ?;"
     );
 
     // Update ship position
     public final SQLStmt updateShipPosStmt = new SQLStmt(
-        "UPDATE " + TestConstants.TABLENAME_SHIPS + " SET x = ?, y = ? WHERE sid = ?;"
+        "UPDATE " + GalaxyConstants.TABLENAME_SHIPS + " SET x = ?, y = ? WHERE sid = ?;"
     );
 
     public long run(Connection conn, int shipId, int move_x, int move_y) throws SQLException {

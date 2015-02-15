@@ -27,9 +27,9 @@
  *  OTHER DEALINGS IN THE SOFTWARE.                                        *
  ***************************************************************************/
 
-package com.oltpbenchmark.benchmarks.test;
+package com.oltpbenchmark.benchmarks.galaxy;
 
-public abstract class TestConstants {
+public abstract class GalaxyConstants {
 
   public static final int NUM_CLASSES = 5;
   public static final int NUM_SOLARSYSTEMS = 6;
