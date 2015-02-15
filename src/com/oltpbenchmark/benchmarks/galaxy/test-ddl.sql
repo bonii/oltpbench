@@ -39,3 +39,5 @@ CREATE TABLE ships
     sid
   )
 );
+CREATE INDEX idx_ships_x ON ships (x);
+CREATE INDEX idx_ships_y ON ships (y);
