@@ -1,4 +1,4 @@
-ackage com.oltpbenchmark.benchmarks.galaxy;
+package com.oltpbenchmark.benchmarks.galaxy;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
