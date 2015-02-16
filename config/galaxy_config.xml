@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<parameters>
+
+    <!-- Connection details -->
+    <dbtype>postgres</dbtype>
+    <driver>org.postgresql.Driver</driver>
+    <DBUrl>jdbc:postgresql://127.0.0.1:5432/galaxy</DBUrl>
+    <username>carljohnsen</username>
+    <password>test</password>
+    <isolation>TRANSACTION_SERIALIZABLE</isolation>
+
+    <scalefactor>10</scalefactor>
+
+    <!-- The workload -->
+    <terminals>10</terminals>
+    <works>
+        <work>
+          <time>30</time>
+          <rate>10000</rate>
+          <weights>100</weights>
+        </work>
+    </works>
+
+    <!-- Voter Procedures declaration -->
+    <transactiontypes>
+        <transactiontype>
+        	<name>Move</name>
+        </transactiontype>
+    </transactiontypes>
+</parameters>
