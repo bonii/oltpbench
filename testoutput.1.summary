@@ -1,0 +1,8 @@
+1424278515
+postgres
+galaxy
+[min=0.02793, 25th=1.016009, median=1.016389, avg=0.9993312288554355, 75th=1.016754, 90th=1.017106, 95th=1.017326, 99th=1.031881, max=1.2087]
+580.1324026075821
+isolation=TRANSACTION_READ_COMMITTED
+scalefactor=10
+terminals=10
