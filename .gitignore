@@ -18,3 +18,8 @@ output.res
 
 # maven output
 target
+/testoutput.ben.cnf
+/testoutput.db.cnf
+/testoutput.raw
+/testoutput.res
+/testoutput.summary
