@@ -20,13 +20,59 @@ import com.oltpbenchmark.benchmarks.galaxy.GalaxyConstants;
 
 public class Tests extends Procedure {
     
-    public Connection conn;
-    public int shipID;
+    private Connection conn;
+    private int shipID;
     
-    @Before
-    public void setup() throws SQLException {
-        shipID = 1;
-        conn = DriverManager.getConnection("jdbc:postgresql://127.0.0.1:5432/galaxy", "carljohnsen", "test");
+    private void createTestShip() throws SQLException {
+        SQLStmt create = new SQLStmt(
+                "INSERT INTO " + GalaxyConstants.TABLENAME_SHIPS + " VALUES " +
+                        "(0, 0, 0, 1, 1);"
+                );
+        PreparedStatement ps = getPreparedStatement(conn, create);
+        ps.execute();
+    }
+    
+    private int[] getPosition() throws SQLException {
+        SQLStmt getPos = new SQLStmt(
+                "SELECT x, y FROM " + GalaxyConstants.TABLENAME_SHIPS +
+                " WHERE sid = ?;"
+                );
+        PreparedStatement ps = getPreparedStatement(conn, getPos);
+        ps.setInt(1, shipID);
+        ResultSet rs = ps.executeQuery();
+        int[] cords = new int[2];
+        try {
+            assertTrue("Query should return something", rs.next());
+            cords[0] = rs.getInt(1);
+            cords[1] = rs.getInt(2);
+        } finally {
+            rs.close();
+        }
+        return cords;
+    }
+    
+    private int[] getPositionAndReach() throws SQLException {
+        SQLStmt getPos = new SQLStmt(
+                "SELECT x, y, reachability FROM " + 
+                        GalaxyConstants.TABLENAME_SHIPS + " JOIN " +
+                        GalaxyConstants.TABLENAME_CLASSES + " ON " +
+                        GalaxyConstants.TABLENAME_SHIPS + ".class = " + 
+                        GalaxyConstants.TABLENAME_CLASSES + ".cid " +
+                        "WHERE sid = ?;"
+                );
+        PreparedStatement ps = getPreparedStatement(conn, getPos);
+        ps.setInt(1, shipID);
+        ResultSet rs = ps.executeQuery();
+        int[] cords = new int[3];
+        try {
+            assertTrue("Query should return something", rs.next());
+            cords[0] = rs.getInt(1);
+            cords[1] = rs.getInt(2);
+            cords[2] = rs.getInt(3);
+        } finally {
+            rs.close();
+        }
+        return cords;
     }
     
     @Test
@@ -56,35 +102,10 @@ public class Tests extends Procedure {
             assertTrue("Query should return something", rs.next());
             int shipCount = rs.getInt(1);
             assertEquals("Ship count should not have changed", 
-                    GalaxyConstants.NUM_SHIPS, shipCount);
+                    GalaxyConstants.NUM_SHIPS + 1, shipCount);
         } finally {
             rs.close();
         }
-    }
-    
-    // TODO split into two functions: one for pos and one for reach
-    private int[] getPosition() throws SQLException {
-        SQLStmt getPos = new SQLStmt(
-                "SELECT x, y, reachability FROM " + 
-                        GalaxyConstants.TABLENAME_SHIPS + " JOIN " +
-                        GalaxyConstants.TABLENAME_CLASSES + " ON " +
-                        GalaxyConstants.TABLENAME_SHIPS + ".class = " + 
-                        GalaxyConstants.TABLENAME_CLASSES + ".cid " +
-                        "WHERE sid = ?;"
-                );
-        PreparedStatement ps = getPreparedStatement(conn, getPos);
-        ps.setInt(1, shipID);
-        ResultSet rs = ps.executeQuery();
-        int[] cords = new int[3];
-        try {
-            assertTrue("Query should return something", rs.next());
-            cords[0] = rs.getInt(1);
-            cords[1] = rs.getInt(2);
-            cords[2] = rs.getInt(3);
-        } finally {
-            rs.close();
-        }
-        return cords;
     }
     
     @Test // TODO Handle solarsystem borders
@@ -93,33 +114,54 @@ public class Tests extends Procedure {
         int[] cords = getPosition();
         int new_x = cords[0] + 1;
         int new_y = cords[1] + 1;
-        assertEquals("Move should be successfull", 0, proc.run(conn, shipID, new_x, new_y));
+        assertEquals("Move should be successfull", 0, 
+                proc.run(conn, shipID, new_x, new_y));
         cords = getPosition();
-        assertTrue("X should be within window", Math.abs(new_x - cords[0]) <= 1);
-        assertTrue("Y should be within window", Math.abs(new_y - cords[1]) <= 1);
+        assertTrue("X should be within window", 
+                Math.abs(new_x - cords[0]) <= 1);
+        assertTrue("Y should be within window", 
+                Math.abs(new_y - cords[1]) <= 1);
+    }
+    
+    private void removeTestShip() throws SQLException {
+        SQLStmt del = new SQLStmt(
+                "DELETE FROM " + GalaxyConstants.TABLENAME_SHIPS + " WHERE " +
+                        "sid = 0;"
+                );
+        PreparedStatement ps = getPreparedStatement(conn, del);
+        ps.execute();
+    }
+    
+    @Before
+    public void setup() throws SQLException {
+        shipID = 0;
+        conn = DriverManager.getConnection(
+                "jdbc:postgresql://127.0.0.1:5432/galaxy", 
+                "carljohnsen", 
+                "test");
+        createTestShip();
+    }
+    
+    @After
+    public void tearDown() throws SQLException {
+        removeTestShip();
+        conn.close();
     }
     
     @Test // TODO Handle solarsystem borders
     public void withinReachability() throws SQLException {
         Move proc = new Move();
-        int[] cords = getPosition();
+        int[] cords = getPositionAndReach();
         int x = cords[0];
         int y = cords[1];
         int reach = cords[2];
-        assertEquals("Move should be successfull", 0, proc.run(conn, shipID, cords[0] + (reach * 2), cords[1] + (reach * 2)));
+        assertEquals("Move should be successfull", 0, proc.run(conn, shipID, 
+                cords[0] + (reach * 2), cords[1] + (reach * 2)));
         cords = getPosition();
-        assertTrue("X should be within reach", Math.abs(x - cords[0]) <= reach + 1);
-        assertTrue("Y should be within reach", Math.abs(y - cords[1]) <= reach + 1);
-    }
-    
-    public long run(Connection conn) {
-        // TODO call tests
-        return 0L;
-    }
-    
-    @After
-    public void tearDown() throws SQLException {
-        conn.close();
+        assertTrue("X should be within reach", 
+                Math.abs(x - cords[0]) <= reach + 1);
+        assertTrue("Y should be within reach", 
+                Math.abs(y - cords[1]) <= reach + 1);
     }
     
 }
