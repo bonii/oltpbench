@@ -104,7 +104,7 @@ public class Move extends Procedure {
                 System.out.println("Class: " + Integer.toString(cid) + "\n");
                 return ERR_INVALID_CLASS;
             } else {
-                reachability = rs.getInt(1);
+                reachability = rs.getInt(3);
             }
         } finally {
             rs.close();

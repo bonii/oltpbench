@@ -22,13 +22,19 @@ public class Tests extends Procedure {
     
     private Connection conn;
     private int shipID;
+    private int moveStepSize;
     
-    private void createTestShip() throws SQLException {
+    private void createTestValues() throws SQLException {
         SQLStmt create = new SQLStmt(
-                "INSERT INTO " + GalaxyConstants.TABLENAME_SHIPS + " VALUES " +
-                        "(0, 0, 0, 1, 1);"
+                "INSERT INTO " + GalaxyConstants.TABLENAME_SOLARSYSTEMS + 
+                " VALUES (0, 100000, 100000); " +
+                "INSERT INTO " + GalaxyConstants.TABLENAME_CLASSES + 
+                " VALUES (0, ?, 100); " +
+                "INSERT INTO " + GalaxyConstants.TABLENAME_SHIPS + 
+                " VALUES (0, 0, 0, 0, 0);"
                 );
         PreparedStatement ps = getPreparedStatement(conn, create);
+        ps.setString(1, "Test cruiser");
         ps.execute();
     }
     
@@ -76,6 +82,19 @@ public class Tests extends Procedure {
     }
     
     @Test
+    public void manyMoves() throws SQLException {
+        int[] posBefore = getPosition();
+        for (int i = 0; i < 100; i++) {
+            oneMove();
+        }
+        int[] posAfter = getPosition();
+        assertEquals("Should have moved 100 positions", 
+                posBefore[0] + (moveStepSize * 100), posAfter[0]);
+        assertEquals("Should have moved 100 positions", 
+                posBefore[1] + (moveStepSize * 100), posAfter[1]);
+    }
+    
+    @Test
     public void noShipsInSamePos() throws SQLException {
         SQLStmt findDuplicates = new SQLStmt(
                 "SELECT x, y, ssid FROM ships " +
@@ -112,21 +131,23 @@ public class Tests extends Procedure {
     public void oneMove() throws SQLException {
         Move proc = new Move();
         int[] cords = getPosition();
-        int new_x = cords[0] + 1;
-        int new_y = cords[1] + 1;
-        assertEquals("Move should be successfull", 0, 
-                proc.run(conn, shipID, new_x, new_y));
+        int new_x = cords[0] + moveStepSize;
+        int new_y = cords[1] + moveStepSize;
+        assertEquals("Move should be successfull", Move.MOVE_SUCCESSFUL, 
+                proc.run(conn, shipID, moveStepSize, moveStepSize));
         cords = getPosition();
-        assertTrue("X should be within window", 
-                Math.abs(new_x - cords[0]) <= 1);
-        assertTrue("Y should be within window", 
-                Math.abs(new_y - cords[1]) <= 1);
+        assertEquals("X should be new position", new_x, cords[0]);
+        assertEquals("Y should be new position", new_y, cords[1]);
     }
     
-    private void removeTestShip() throws SQLException {
+    private void removeTestValues() throws SQLException {
         SQLStmt del = new SQLStmt(
-                "DELETE FROM " + GalaxyConstants.TABLENAME_SHIPS + " WHERE " +
-                        "sid = 0;"
+                "DELETE FROM " + GalaxyConstants.TABLENAME_SHIPS + 
+                " WHERE sid = 0; " +
+                "DELETE FROM " + GalaxyConstants.TABLENAME_SOLARSYSTEMS +
+                " WHERE ssid = 0; " +
+                "DELETE FROM " + GalaxyConstants.TABLENAME_CLASSES + 
+                " WHERE cid = 0;"
                 );
         PreparedStatement ps = getPreparedStatement(conn, del);
         ps.execute();
@@ -139,12 +160,12 @@ public class Tests extends Procedure {
                 "jdbc:postgresql://127.0.0.1:5432/galaxy", 
                 "carljohnsen", 
                 "test");
-        createTestShip();
+        createTestValues();
     }
     
     @After
     public void tearDown() throws SQLException {
-        removeTestShip();
+        removeTestValues();
         conn.close();
     }
     
@@ -156,12 +177,12 @@ public class Tests extends Procedure {
         int y = cords[1];
         int reach = cords[2];
         assertEquals("Move should be successfull", 0, proc.run(conn, shipID, 
-                cords[0] + (reach * 2), cords[1] + (reach * 2)));
+                x + (reach * 2), y + (reach * 2)));
         cords = getPosition();
-        assertTrue("X should be within reach", 
-                Math.abs(x - cords[0]) <= reach + 1);
-        assertTrue("Y should be within reach", 
-                Math.abs(y - cords[1]) <= reach + 1);
+        assertEquals("X should be within reach",
+                x + reach, cords[0]);
+        assertEquals("Y should be within reach",
+                y + reach, cords[1]);
     }
     
 }
