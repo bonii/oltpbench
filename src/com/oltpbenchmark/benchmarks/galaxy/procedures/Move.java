@@ -63,7 +63,7 @@ public class Move extends Procedure {
 
     // Check single tile if free
     public final SQLStmt checkTileStmt = new SQLStmt(
-        "SELECT x, y FROM " + GalaxyConstants.TABLENAME_SHIPS + " WHERE x = ? AND y = ?;"
+        "SELECT x, y FROM " + GalaxyConstants.TABLENAME_SHIPS + " WHERE x = ? AND y = ? AND ssid = ?;"
     );
 
     // Update ship position
@@ -146,6 +146,7 @@ public class Move extends Procedure {
         ps = getPreparedStatement(conn, checkTileStmt);
         ps.setInt(1, new_x);
         ps.setInt(2, new_y);
+        ps.setInt(3, ssid);
         rs = ps.executeQuery();
 
         try {

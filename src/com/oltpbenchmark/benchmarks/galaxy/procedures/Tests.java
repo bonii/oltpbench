@@ -27,17 +27,49 @@ public class Tests extends Procedure {
     @Test
     public void cannotMoveOutOfSystem() throws SQLException {
         int[] maxAndReach = getSystemMaxAndReach();
-        int systemMax = maxAndReach[0];
-        int reach = maxAndReach[1];
-        int iters = (systemMax / reach) + 1;
+        int xMax = maxAndReach[0];
+        int yMax = maxAndReach[1];
+        int reach = maxAndReach[2];
+        
+        int iters = (xMax / reach) + 1;
+        assertTrue("asdf", iters >= 100);
         for (int i = 0; i < iters; i++) {
-            moveDefined(reach, reach);
+            moveDefined(reach, 0);
         }
         int[] cords = getPosition();
         assertEquals("Ship x should be at the edge of the system", 
-                systemMax, cords[0]);
+                xMax, cords[0]);
+        
+        iters = (yMax / reach) + 1;
+        for (int i = 0; i < iters; i++) {
+            moveDefined(0, reach);
+        }
+        cords = getPosition();
         assertEquals("Ship y should be at the edge of the system", 
-                systemMax, cords[1]);
+                yMax, cords[1]);
+    }
+    
+    @Test
+    public void cannotMoveOnTopOfOther() throws SQLException {
+        oneMove();
+        int tmp = shipID;
+        shipID = -1;
+        SQLStmt tmpShip = new SQLStmt(
+                "INSERT INTO " + GalaxyConstants.TABLENAME_SHIPS + 
+                " VALUES (?, 0, 0, 0, 0);"
+                );
+        PreparedStatement ps = getPreparedStatement(conn, tmpShip);
+        ps.setInt(1, shipID);
+        ps.execute();
+        noShipsInSamePos();
+        SQLStmt del = new SQLStmt(
+                "DELETE FROM " + GalaxyConstants.TABLENAME_SHIPS + 
+                " WHERE sid = ?;"
+                );
+        ps = getPreparedStatement(conn, del);
+        ps.setInt(1, shipID);
+        ps.execute();
+        shipID = tmp;
     }
     
     private void createTestValues() throws SQLException {
@@ -99,8 +131,9 @@ public class Tests extends Procedure {
     
     private int[] getSystemMaxAndReach() throws SQLException {
         SQLStmt getInfo = new SQLStmt(
-                "SELECT x_max, reachability FROM " + 
-                GalaxyConstants.TABLENAME_SHIPS + " JOIN solarsystems ON " +
+                "SELECT x_max, y_max, reachability FROM " + 
+                GalaxyConstants.TABLENAME_SHIPS + " JOIN " +
+                GalaxyConstants.TABLENAME_SOLARSYSTEMS + " ON " +
                 GalaxyConstants.TABLENAME_SHIPS + ".ssid = " + 
                 GalaxyConstants.TABLENAME_SOLARSYSTEMS + ".ssid JOIN " + 
                 GalaxyConstants.TABLENAME_CLASSES + " ON " + 
@@ -110,11 +143,12 @@ public class Tests extends Procedure {
         PreparedStatement ps = getPreparedStatement(conn, getInfo);
         ps.setInt(1, shipID);
         ResultSet rs = ps.executeQuery();
-        int[] info = new int[2];
+        int[] info = new int[3];
         try {
             assertTrue("Query should return something", rs.next());
             info[0] = rs.getInt(1);
             info[1] = rs.getInt(2);
+            info[2] = rs.getInt(3);
         } finally {
             rs.close();
         }
