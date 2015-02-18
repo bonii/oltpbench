@@ -21,15 +21,31 @@ import com.oltpbenchmark.benchmarks.galaxy.GalaxyConstants;
 public class Tests extends Procedure {
     
     private Connection conn;
-    private int shipID;
-    private int moveStepSize;
+    private int shipID = 0;
+    private int moveStepSize = 5;
+    
+    @Test
+    public void cannotMoveOutOfSystem() throws SQLException {
+        int[] maxAndReach = getSystemMaxAndReach();
+        int systemMax = maxAndReach[0];
+        int reach = maxAndReach[1];
+        int iters = (systemMax / reach) + 1;
+        for (int i = 0; i < iters; i++) {
+            moveDefined(reach, reach);
+        }
+        int[] cords = getPosition();
+        assertEquals("Ship x should be at the edge of the system", 
+                systemMax, cords[0]);
+        assertEquals("Ship y should be at the edge of the system", 
+                systemMax, cords[1]);
+    }
     
     private void createTestValues() throws SQLException {
         SQLStmt create = new SQLStmt(
                 "INSERT INTO " + GalaxyConstants.TABLENAME_SOLARSYSTEMS + 
                 " VALUES (0, 100000, 100000); " +
                 "INSERT INTO " + GalaxyConstants.TABLENAME_CLASSES + 
-                " VALUES (0, ?, 100); " +
+                " VALUES (0, ?, 1000); " +
                 "INSERT INTO " + GalaxyConstants.TABLENAME_SHIPS + 
                 " VALUES (0, 0, 0, 0, 0);"
                 );
@@ -81,6 +97,30 @@ public class Tests extends Procedure {
         return cords;
     }
     
+    private int[] getSystemMaxAndReach() throws SQLException {
+        SQLStmt getInfo = new SQLStmt(
+                "SELECT x_max, reachability FROM " + 
+                GalaxyConstants.TABLENAME_SHIPS + " JOIN solarsystems ON " +
+                GalaxyConstants.TABLENAME_SHIPS + ".ssid = " + 
+                GalaxyConstants.TABLENAME_SOLARSYSTEMS + ".ssid JOIN " + 
+                GalaxyConstants.TABLENAME_CLASSES + " ON " + 
+                GalaxyConstants.TABLENAME_SHIPS + ".class = " + 
+                GalaxyConstants.TABLENAME_CLASSES + ".cid WHERE sid = ?;"
+                );
+        PreparedStatement ps = getPreparedStatement(conn, getInfo);
+        ps.setInt(1, shipID);
+        ResultSet rs = ps.executeQuery();
+        int[] info = new int[2];
+        try {
+            assertTrue("Query should return something", rs.next());
+            info[0] = rs.getInt(1);
+            info[1] = rs.getInt(2);
+        } finally {
+            rs.close();
+        }
+        return info;
+    }
+    
     @Test
     public void manyMoves() throws SQLException {
         int[] posBefore = getPosition();
@@ -92,6 +132,12 @@ public class Tests extends Procedure {
                 posBefore[0] + (moveStepSize * 100), posAfter[0]);
         assertEquals("Should have moved 100 positions", 
                 posBefore[1] + (moveStepSize * 100), posAfter[1]);
+    }
+    
+    private void moveDefined(int x, int y) throws SQLException {
+        Move proc = new Move();
+        assertEquals("Move should be successfull", 0, 
+                proc.run(conn, shipID, x, y));
     }
     
     @Test
@@ -155,7 +201,6 @@ public class Tests extends Procedure {
     
     @Before
     public void setup() throws SQLException {
-        shipID = 0;
         conn = DriverManager.getConnection(
                 "jdbc:postgresql://127.0.0.1:5432/galaxy", 
                 "carljohnsen", 
@@ -171,13 +216,11 @@ public class Tests extends Procedure {
     
     @Test // TODO Handle solarsystem borders
     public void withinReachability() throws SQLException {
-        Move proc = new Move();
         int[] cords = getPositionAndReach();
         int x = cords[0];
         int y = cords[1];
         int reach = cords[2];
-        assertEquals("Move should be successfull", 0, proc.run(conn, shipID, 
-                x + (reach * 2), y + (reach * 2)));
+        moveDefined(reach * 2, reach * 2);
         cords = getPosition();
         assertEquals("X should be within reach",
                 x + reach, cords[0]);
