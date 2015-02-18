@@ -14,7 +14,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import com.oltpbenchmark.DBWorkload;
 import com.oltpbenchmark.api.Procedure;
 import com.oltpbenchmark.api.SQLStmt;
 import com.oltpbenchmark.benchmarks.galaxy.GalaxyConstants;
@@ -69,9 +68,9 @@ public class Tests extends Procedure {
                 "SELECT x, y, reachability FROM " + 
                         GalaxyConstants.TABLENAME_SHIPS + " JOIN " +
                         GalaxyConstants.TABLENAME_CLASSES + " ON " +
-                        GalaxyConstants.TABLENAME_SHIPS + ".cid = " + 
-                        GalaxyConstants.TABLENAME_CLASSES + ".cid" +
-                        "WHERE " + GalaxyConstants.TABLENAME_SHIPS + ".sid = ?;"
+                        GalaxyConstants.TABLENAME_SHIPS + ".class = " + 
+                        GalaxyConstants.TABLENAME_CLASSES + ".cid " +
+                        "WHERE sid = ?;"
                 );
         PreparedStatement ps = getPreparedStatement(conn, getPos);
         ps.setInt(1, shipID);
