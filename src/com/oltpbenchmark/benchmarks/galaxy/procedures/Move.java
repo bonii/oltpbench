@@ -1,32 +1,3 @@
-/* This file is part of VoltDB.
- * Copyright (C) 2008-2012 VoltDB Inc.
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be
- * included in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR
- * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
- */
-
-//
-// Accepts a vote, enforcing business logic: make sure the vote is for a valid
-// congalaxyant and that the voter (phone number of the caller) is not above the
-// number of allowed votes.
-//
-
 package com.oltpbenchmark.benchmarks.galaxy.procedures;
 
 import java.sql.Connection;
@@ -46,72 +17,61 @@ public class Move extends Procedure {
     public static final long ERR_INVALID_CLASS = 2;
     public static final long ERR_INVALID_SOLARSYSTEM = 3;
 
-    // Get ship entry
-    public final SQLStmt getShipStmt = new SQLStmt(
-	"SELECT * FROM " + GalaxyConstants.TABLENAME_SHIPS  +" WHERE sid = ?;"
-    );
-
-    // Get ship class entry
-    public final SQLStmt getClassStmt = new SQLStmt(
-        "SELECT * FROM " + GalaxyConstants.TABLENAME_CLASSES + " WHERE cid = ?;"
-    );
-
-    // Get solarsystem entry
-    public final SQLStmt getSolarStmt = new SQLStmt(
-        "SELECT x_max, y_max FROM " + GalaxyConstants.TABLENAME_SOLARSYSTEMS + " WHERE ssid = ?;"
-    );
-
     // Check single tile if free
     public final SQLStmt checkTileStmt = new SQLStmt(
-        "SELECT x, y FROM " + GalaxyConstants.TABLENAME_SHIPS + " WHERE x = ? AND y = ? AND ssid = ?;"
+        "SELECT x, y FROM " + GalaxyConstants.TABLENAME_SHIPS + 
+        " WHERE x BETWEEN ?-1 AND ?+1 AND y BETWEEN ?-1 AND ?+1 AND ssid = ?" +
+        " AND sid != ?;"
     );
+    
+    // Get ship, class and solarsystem information
+    public final SQLStmt getShipInfo = new SQLStmt(
+            "SELECT x, y, reachability, " + 
+            GalaxyConstants.TABLENAME_SHIPS + ".ssid, x_max, y_max FROM " +
+            GalaxyConstants.TABLENAME_SHIPS + " JOIN " +
+            GalaxyConstants.TABLENAME_CLASSES + " ON " + 
+            GalaxyConstants.TABLENAME_SHIPS + ".class = " +
+            GalaxyConstants.TABLENAME_CLASSES + ".cid JOIN " +
+            GalaxyConstants.TABLENAME_SOLARSYSTEMS + " ON " +
+            GalaxyConstants.TABLENAME_SHIPS + ".ssid = " +
+            GalaxyConstants.TABLENAME_SOLARSYSTEMS + ".ssid WHERE sid = ?;"
+            );
 
     // Update ship position
     public final SQLStmt updateShipPosStmt = new SQLStmt(
-        "UPDATE " + GalaxyConstants.TABLENAME_SHIPS + " SET x = ?, y = ? WHERE sid = ?;"
+        "UPDATE " + GalaxyConstants.TABLENAME_SHIPS + 
+        " SET x = ?, y = ? WHERE sid = ?;"
     );
 
-    public long run(Connection conn, int shipId, int move_x, int move_y) throws SQLException {
+    public long run(Connection conn, int shipId, int move_x, int move_y) 
+            throws SQLException {
 
-        PreparedStatement ps = getPreparedStatement(conn, getShipStmt);
+        PreparedStatement ps = getPreparedStatement(conn, getShipInfo);
         ps.setInt(1, shipId);
         ResultSet rs = ps.executeQuery();
         int x;
         int y;
-        int cid;
+        int reachability;
         int ssid;
+        int x_max;
+        int y_max;
         try {
             if (!rs.next()) {
-                System.out.println("Ship: " + Integer.toString(shipId) + "\n");
+                System.out.println("Ship: " + Integer.toString(shipId));
                 return ERR_INVALID_SHIP;
             } else {
-                x = rs.getInt(2);
-                y = rs.getInt(3);
-                cid = rs.getInt(4);
-                ssid = rs.getInt(5);
-            }
-        } finally {
-            rs.close();
-        }
-
-        ps = getPreparedStatement(conn, getClassStmt);
-        ps.setInt(1, cid);
-        rs = ps.executeQuery();
-
-        int reachability;
-        try {
-            if (!rs.next()) {
-                System.out.println("Class: " + Integer.toString(cid) + "\n");
-                return ERR_INVALID_CLASS;
-            } else {
+                x = rs.getInt(1);
+                y = rs.getInt(2);
                 reachability = rs.getInt(3);
+                ssid = rs.getInt(4);
+                x_max = rs.getInt(5);
+                y_max = rs.getInt(6);
             }
         } finally {
             rs.close();
         }
 
         // Cap the movement to reachability
-
         if (move_x < 0) {
             move_x = Math.max(move_x, -reachability);
         } else {
@@ -123,37 +83,22 @@ public class Move extends Procedure {
             move_y = Math.min(move_y, reachability);
         }
 
-        ps = getPreparedStatement(conn, getSolarStmt);
-        ps.setInt(1, ssid);
-        rs = ps.executeQuery();
-
-        int x_max;
-        int y_max;
-        try {
-            if (!rs.next()) {
-                System.out.println("Solarsystem: " + Integer.toString(ssid) + "\n");
-                return ERR_INVALID_SOLARSYSTEM;
-            } else {
-                x_max = rs.getInt(1);
-                y_max = rs.getInt(2);
-            }
-        } finally {
-            rs.close();
-        }
-
-        int new_x = Math.min(x_max, x + move_x);
-        int new_y = Math.min(y_max, y + move_y);
+        int new_x = Math.max(Math.min(x_max, x + move_x), 0);
+        int new_y = Math.max(Math.min(y_max, y + move_y), 0);
         ps = getPreparedStatement(conn, checkTileStmt);
         ps.setInt(1, new_x);
-        ps.setInt(2, new_y);
-        ps.setInt(3, ssid);
+        ps.setInt(2, new_x);
+        ps.setInt(3, new_y);
+        ps.setInt(4, new_y);
+        ps.setInt(5, ssid);
+        ps.setInt(6, shipId);
         rs = ps.executeQuery();
 
         try {
-            if (rs.next()) {
+            if (rs.next()) { // TODO select random instead of exact point
                 new_x = x;
                 new_y = y;
-            }
+            } 
         } finally {
             rs.close();
         }

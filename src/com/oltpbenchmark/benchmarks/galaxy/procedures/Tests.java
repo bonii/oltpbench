@@ -31,12 +31,20 @@ public class Tests extends Procedure {
         int yMax = maxAndReach[1];
         int reach = maxAndReach[2];
         
+        // Try to move to -1 x and y
+        moveDefined(-1, 0);
+        int[] cords = getPosition();
+        assertEquals("Ship x should still be 0", 0, cords[0]);
+        moveDefined(0, -1);
+        cords = getPosition();
+        assertEquals("Ship y should still be 0", 0, cords[1]);
+        
         int iters = (xMax / reach) + 1;
         assertTrue("asdf", iters >= 100);
         for (int i = 0; i < iters; i++) {
             moveDefined(reach, 0);
         }
-        int[] cords = getPosition();
+        cords = getPosition();
         assertEquals("Ship x should be at the edge of the system", 
                 xMax, cords[0]);
         
