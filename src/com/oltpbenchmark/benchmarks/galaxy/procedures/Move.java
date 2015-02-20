@@ -4,18 +4,34 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Random;
 import java.lang.Math;
+
 import com.oltpbenchmark.api.Procedure;
 import com.oltpbenchmark.api.SQLStmt;
 import com.oltpbenchmark.benchmarks.galaxy.GalaxyConstants;
 
 public class Move extends Procedure {
+    
+    private class Tuple {
+        public int x;
+        public int y;
+        
+        public Tuple(final int x, final int y) {
+            this.x = x;
+            this.y = y;
+        }
+        
+        public boolean equals(Tuple other) {
+            return this.x == other.x && this.y == other.y;
+        }
+    }
 
     // potential return codes
     public static final long MOVE_SUCCESSFUL = 0;
+    public static final long MOVE_NOT_SUCCESSFUL = 1;
     public static final long ERR_INVALID_SHIP = 1;
-    public static final long ERR_INVALID_CLASS = 2;
-    public static final long ERR_INVALID_SOLARSYSTEM = 3;
 
     // Check single tile if free
     public final SQLStmt checkTileStmt = new SQLStmt(
@@ -94,15 +110,34 @@ public class Move extends Procedure {
         ps.setInt(6, shipId);
         rs = ps.executeQuery();
 
+        ArrayList<Tuple> possibles = new ArrayList<Tuple>();
+        for (int i = new_x - 1; i <= new_x + 1; i++) { // TODO cap the possibilities to stay within solarsystem
+            for (int j = new_y - 1; j <= new_y + 1; j++) {
+                possibles.add(new Tuple(i,j));
+            }
+        }
+        
         try {
-            if (rs.next()) { // TODO select random instead of exact point
-                new_x = x;
-                new_y = y;
-            } 
+            while (rs.next()) {
+                Tuple taken = new Tuple(rs.getInt(1), rs.getInt(2));
+                for (int i = 0; i < possibles.size(); i++) {
+                    if (taken.equals(possibles.get(i))) {
+                        possibles.remove(i);
+                    }
+                }
+            }
         } finally {
             rs.close();
         }
 
+        if (possibles.size() == 0) { // There are no free spaces
+            return MOVE_NOT_SUCCESSFUL;
+        } else { // Select a random position of the possibles
+            Tuple rand = possibles.get(new Random().nextInt(possibles.size()));
+            new_x = rand.x;
+            new_y = rand.y;
+        }
+        
         ps = getPreparedStatement(conn, updateShipPosStmt);
         ps.setInt(1, new_x);
         ps.setInt(2, new_y);
