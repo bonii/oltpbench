@@ -1,8 +1,7 @@
 -- Drop tables before creating them
+DROP TABLE IF EXISTS ships;
 DROP TABLE IF EXISTS classes;
 DROP TABLE IF EXISTS solarsystems;
-DROP TABLE IF EXISTS ships;
-
 
 -- classes table holds all the ship classes and their reachability
 CREATE TABLE classes
