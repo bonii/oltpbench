@@ -111,8 +111,12 @@ public class Move extends Procedure {
         rs = ps.executeQuery();
 
         ArrayList<Tuple> possibles = new ArrayList<Tuple>();
-        for (int i = new_x - 1; i <= new_x + 1; i++) { // TODO cap the possibilities to stay within solarsystem
-            for (int j = new_y - 1; j <= new_y + 1; j++) {
+        Tuple min = new Tuple(Math.max(0, new_x - 1), 
+                Math.max(0, new_y));
+        Tuple max = new Tuple(Math.min(x_max, new_x + 1), 
+                Math.min(y_max, new_y + 1));
+        for (int i = min.x; i <= max.x; i++) { 
+            for (int j = min.y; j <= max.y; j++) {
                 possibles.add(new Tuple(i,j));
             }
         }

@@ -34,10 +34,10 @@ public class Tests extends Procedure {
         // Try to move to -1 x and y
         moveDefined(-1, 0);
         int[] cords = getPosition();
-        assertEquals("Ship x should still be 0", 0, cords[0]);
+        assertTrue("Ship x should still be near 0", cords[0] == 0 || cords[0] == 1);
         moveDefined(0, -1);
         cords = getPosition();
-        assertEquals("Ship y should still be 0", 0, cords[1]);
+        assertTrue("Ship y should still be near 0", cords[1] == 0 || cords[1] == 1);
         
         int iters = (xMax / reach) + 1;
         assertTrue("asdf", iters >= 100);
@@ -45,16 +45,16 @@ public class Tests extends Procedure {
             moveDefined(reach, 0);
         }
         cords = getPosition();
-        assertEquals("Ship x should be at the edge of the system", 
-                xMax, cords[0]);
+        assertTrue("Ship x should be near the edge of the system", 
+                Math.abs(xMax - cords[0]) <= 1);
         
         iters = (yMax / reach) + 1;
         for (int i = 0; i < iters; i++) {
             moveDefined(0, reach);
         }
         cords = getPosition();
-        assertEquals("Ship y should be at the edge of the system", 
-                yMax, cords[1]);
+        assertTrue("Ship y should be near the edge of the system", 
+                Math.abs(yMax - cords[1]) <= 1);
     }
     
     @Test
@@ -163,17 +163,20 @@ public class Tests extends Procedure {
         return info;
     }
     
-    @Test
+    @Test // TODO edit this test to handle random tile
     public void manyMoves() throws SQLException {
+        int numMoves = 100;
         int[] posBefore = getPosition();
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < numMoves; i++) {
             oneMove();
         }
         int[] posAfter = getPosition();
-        assertEquals("Should have moved 100 positions", 
-                posBefore[0] + (moveStepSize * 100), posAfter[0]);
-        assertEquals("Should have moved 100 positions", 
-                posBefore[1] + (moveStepSize * 100), posAfter[1]);
+        assertTrue("Should have moved " + numMoves + " positions",
+                Math.abs(posBefore[0] + (moveStepSize * numMoves) 
+                        - posAfter[0]) <= numMoves);
+        assertTrue("Should have moved " + numMoves + " positions", 
+                Math.abs(posBefore[1] + (moveStepSize * numMoves) 
+                        - posAfter[1]) <= numMoves);
     }
     
     private void moveDefined(int x, int y) throws SQLException {
@@ -219,13 +222,13 @@ public class Tests extends Procedure {
     public void oneMove() throws SQLException {
         Move proc = new Move();
         int[] cords = getPosition();
-        int new_x = cords[0] + moveStepSize;
-        int new_y = cords[1] + moveStepSize;
+        int newX = cords[0] + moveStepSize;
+        int newY = cords[1] + moveStepSize;
         assertEquals("Move should be successfull", Move.MOVE_SUCCESSFUL, 
                 proc.run(conn, shipID, moveStepSize, moveStepSize));
         cords = getPosition();
-        assertEquals("X should be new position", new_x, cords[0]);
-        assertEquals("Y should be new position", new_y, cords[1]);
+        assertTrue("X should be near new position", Math.abs(newX - cords[0]) <= 1);
+        assertTrue("Y should be near new position", Math.abs(newY - cords[1]) <= 1);
     }
     
     private void removeTestValues() throws SQLException {
@@ -264,10 +267,10 @@ public class Tests extends Procedure {
         int reach = cords[2];
         moveDefined(reach * 2, reach * 2);
         cords = getPosition();
-        assertEquals("X should be within reach",
-                x + reach, cords[0]);
-        assertEquals("Y should be within reach",
-                y + reach, cords[1]);
+        assertTrue("X should be within reach",
+                Math.abs(x + reach - cords[0]) <= 1);
+        assertTrue("Y should be within reach",
+                Math.abs(y + reach - cords[1]) <= 1);
     }
     
 }
