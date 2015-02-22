@@ -29,7 +29,7 @@ CREATE TABLE solarsystems
 );
 
 -- ships table holds every ship, and their position
-CREATE TABLE solarsystems
+CREATE TABLE ships
 (
   sid integer   NOT NULL,
   x integer     NOT NULL,
