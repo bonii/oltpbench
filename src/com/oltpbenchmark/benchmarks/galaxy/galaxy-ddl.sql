@@ -1,5 +1,7 @@
 -- Drop tables before creating them
---DROP TABLE IF EXISTS classes, solarsystems, ships;
+DROP TABLE IF EXISTS classes;
+DROP TABLE IF EXISTS solarsystems;
+DROP TABLE IF EXISTS ships;
 
 
 -- classes table holds all the ship classes and their reachability
@@ -27,7 +29,7 @@ CREATE TABLE solarsystems
 );
 
 -- ships table holds every ship, and their position
-CREATE TABLE ships
+CREATE TABLE solarsystems
 (
   sid integer   NOT NULL,
   x integer     NOT NULL,
