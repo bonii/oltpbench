@@ -37,9 +37,11 @@ public class GalaxyWorker extends Worker {
             Tests.conn = conn;
             JUnitCore junit = new JUnitCore();
             Result result = junit.run(Tests.class);
+            System.out.println("-----");
             System.out.println("JUnit failures: " + result.getFailureCount());
             System.out.println("JUnit run count: " + result.getRunCount());
             System.out.println("JUnit run time: " + result.getRunTime());
+            System.out.println("-----");
             return TransactionStatus.SUCCESS;
         }
         return TransactionStatus.RETRY_DIFFERENT;
