@@ -5,8 +5,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -29,6 +27,7 @@ public class Tests extends Procedure {
     
     @Test
     public void cannotMoveOutOfSystem() throws SQLException {
+        createTestValues();
         int[] maxAndReach = getSystemMaxAndReach();
         int xMax = maxAndReach[0];
         int yMax = maxAndReach[1];
@@ -37,10 +36,12 @@ public class Tests extends Procedure {
         // Try to move to -1 x and y
         moveDefined(-1, 0);
         int[] cords = getPosition();
-        assertTrue("Ship x should still be near 0", cords[0] == 0 || cords[0] == 1);
+        assertTrue("Ship x should still be near 0", 
+                cords[0] == 0 || cords[0] == 1);
         moveDefined(0, -1);
         cords = getPosition();
-        assertTrue("Ship y should still be near 0", cords[1] == 0 || cords[1] == 1);
+        assertTrue("Ship y should still be near 0", 
+                cords[1] == 0 || cords[1] == 1);
         
         int iters = (xMax / reach) + 1;
         assertTrue("asdf", iters >= 100);
@@ -58,11 +59,13 @@ public class Tests extends Procedure {
         cords = getPosition();
         assertTrue("Ship y should be near the edge of the system", 
                 Math.abs(yMax - cords[1]) <= 1);
+        removeTestValues();
     }
     
     @Test
     public void cannotMoveOnTopOfOther() throws SQLException {
-        oneMove();
+        createTestValues();
+        moveDefined(moveStepSize, moveStepSize);
         int tmp = shipID;
         shipID = -1;
         SQLStmt tmpShip = new SQLStmt(
@@ -81,6 +84,7 @@ public class Tests extends Procedure {
         ps.setInt(1, shipID);
         ps.execute();
         shipID = tmp;
+        removeTestValues();
     }
     
     private void createTestValues() throws SQLException {
@@ -174,10 +178,11 @@ public class Tests extends Procedure {
     
     @Test // TODO edit this test to handle random tile
     public void manyMoves() throws SQLException {
+        createTestValues();
         int numMoves = 100;
         int[] posBefore = getPosition();
         for (int i = 0; i < numMoves; i++) {
-            oneMove();
+            moveDefined(moveStepSize, moveStepSize);
         }
         int[] posAfter = getPosition();
         assertTrue("Should have moved " + numMoves + " positions",
@@ -186,6 +191,7 @@ public class Tests extends Procedure {
         assertTrue("Should have moved " + numMoves + " positions", 
                 Math.abs(posBefore[1] + (moveStepSize * numMoves) 
                         - posAfter[1]) <= numMoves);
+        removeTestValues();
     }
     
     private void moveDefined(int x, int y) throws SQLException {
@@ -211,6 +217,7 @@ public class Tests extends Procedure {
     
     @Test
     public void noShipsDisappeared() throws SQLException {
+        createTestValues();
         SQLStmt countShips = new SQLStmt(
                 "SELECT COUNT(*) FROM " + 
                         GalaxyConstants.TABLENAME_SHIPS + ";"
@@ -225,10 +232,12 @@ public class Tests extends Procedure {
         } finally {
             rs.close();
         }
+        removeTestValues();
     }
     
     @Test // TODO Handle solarsystem borders
     public void oneMove() throws SQLException {
+        createTestValues();
         Move proc = new Move();
         int[] cords = getPosition();
         int newX = cords[0] + moveStepSize;
@@ -236,8 +245,11 @@ public class Tests extends Procedure {
         assertEquals("Move should be successfull", Move.MOVE_SUCCESSFUL, 
                 proc.run(conn, shipID, moveStepSize, moveStepSize));
         cords = getPosition();
-        assertTrue("X should be near new position", Math.abs(newX - cords[0]) <= 1);
-        assertTrue("Y should be near new position", Math.abs(newY - cords[1]) <= 1);
+        assertTrue("X should be near new position", 
+                Math.abs(newX - cords[0]) <= 1);
+        assertTrue("Y should be near new position", 
+                Math.abs(newY - cords[1]) <= 1);
+        removeTestValues();
     }
     
     private void removeTestValues() throws SQLException {
@@ -259,18 +271,19 @@ public class Tests extends Procedure {
         ps.execute();
     }
     
-    @Before
-    public void setup() throws SQLException {
-        createTestValues();
-    }
-    
-    @After
-    public void tearDown() throws SQLException {
-        removeTestValues();
+    public void run() throws SQLException {
+        cannotMoveOutOfSystem();
+        cannotMoveOnTopOfOther();
+        manyMoves();
+        noShipsInSamePos();
+        noShipsDisappeared();
+        oneMove();
+        withinReachability();
     }
     
     @Test // TODO Handle solarsystem borders
     public void withinReachability() throws SQLException {
+        createTestValues();
         int[] cords = getPositionAndReach();
         int x = cords[0];
         int y = cords[1];
@@ -281,6 +294,7 @@ public class Tests extends Procedure {
                 Math.abs(x + reach - cords[0]) <= 1);
         assertTrue("Y should be within reach",
                 Math.abs(y + reach - cords[1]) <= 1);
+        removeTestValues();
     }
     
 }
