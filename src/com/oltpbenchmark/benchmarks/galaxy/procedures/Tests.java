@@ -76,6 +76,21 @@ public class Tests extends Procedure {
                 "DELETE FROM " + classes + " WHERE cid = 0;"
                 );
 
+    public final SQLStmt getMaxAndReach = new SQLStmt(
+            "SELECT x_max, y_max, reachability FROM " +
+            GalaxyConstants.TABLENAME_SHIPS + " JOIN " +
+            GalaxyConstants.TABLENAME_SOLARSYSTEMS + " ON " +
+            GalaxyConstants.TABLENAME_SHIPS + ".ssid = " +
+            GalaxyConstants.TABLENAME_SOLARSYSTEMS + ".ssid JOIN " +
+            GalaxyConstants.TABLENAME_CLASSES + " ON " +
+            GalaxyConstants.TABLENAME_SHIPS + ".class = " +
+            GalaxyConstants.TABLENAME_CLASSES + ".cid WHERE sid = ?;"
+            );
+    public final SQLStmt countShips = new SQLStmt(
+            "SELECT COUNT(*) FROM " +
+                    GalaxyConstants.TABLENAME_SHIPS + ";"
+            );
+
     @Test
     public void cannotMoveOutOfSystem() throws SQLException {
         createTestValues();
@@ -173,17 +188,7 @@ public class Tests extends Procedure {
     }
 
     private int[] getSystemMaxAndReach() throws SQLException {
-        SQLStmt getInfo = new SQLStmt(
-                "SELECT x_max, y_max, reachability FROM " +
-                GalaxyConstants.TABLENAME_SHIPS + " JOIN " +
-                GalaxyConstants.TABLENAME_SOLARSYSTEMS + " ON " +
-                GalaxyConstants.TABLENAME_SHIPS + ".ssid = " +
-                GalaxyConstants.TABLENAME_SOLARSYSTEMS + ".ssid JOIN " +
-                GalaxyConstants.TABLENAME_CLASSES + " ON " +
-                GalaxyConstants.TABLENAME_SHIPS + ".class = " +
-                GalaxyConstants.TABLENAME_CLASSES + ".cid WHERE sid = ?;"
-                );
-        PreparedStatement ps = getPreparedStatement(this.conn, getInfo);
+        PreparedStatement ps = getPreparedStatement(this.conn, getMaxAndReach);
         ps.setInt(1, shipID);
         ResultSet rs = ps.executeQuery();
         int[] info = new int[3];
@@ -236,10 +241,6 @@ public class Tests extends Procedure {
     @Test
     public void noShipsDisappeared() throws SQLException {
         createTestValues();
-        SQLStmt countShips = new SQLStmt(
-                "SELECT COUNT(*) FROM " +
-                        GalaxyConstants.TABLENAME_SHIPS + ";"
-                );
         PreparedStatement ps = getPreparedStatement(this.conn, countShips);
         ResultSet rs = ps.executeQuery();
         try {
