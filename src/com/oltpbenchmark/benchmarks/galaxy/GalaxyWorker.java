@@ -31,9 +31,8 @@ public class GalaxyWorker extends Worker {
             return TransactionStatus.SUCCESS;
         }
         if (txnType.getProcedureClass().equals(Tests.class)) {
-            Tests.conn = conn;
-            Tests proc = new Tests();
-            proc.run();
+            Tests proc = getProcedure(Tests.class);
+            proc.run(conn);
             return TransactionStatus.SUCCESS;
         }
         return TransactionStatus.RETRY_DIFFERENT;
