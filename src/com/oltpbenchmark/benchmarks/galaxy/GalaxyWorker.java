@@ -5,6 +5,7 @@ import java.util.Random;
 
 import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
+import org.junit.runner.notification.Failure;
 
 import com.oltpbenchmark.api.Procedure.UserAbortException;
 import com.oltpbenchmark.api.TransactionType;
@@ -41,6 +42,9 @@ public class GalaxyWorker extends Worker {
             System.out.println("JUnit failures: " + result.getFailureCount());
             System.out.println("JUnit run count: " + result.getRunCount());
             System.out.println("JUnit run time: " + result.getRunTime());
+            for (Failure fail : result.getFailures()) {
+                System.out.println(fail.getTrace());
+            }
             System.out.println("-----");
             return TransactionStatus.SUCCESS;
         }

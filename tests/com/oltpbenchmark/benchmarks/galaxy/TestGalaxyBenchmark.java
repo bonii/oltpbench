@@ -7,6 +7,7 @@ public class TestGalaxyBenchmark extends AbstractTestBenchmarkModule<GalaxyBench
 
     public static final Class<?> PROC_CLASSES[] = {
         Move.class,
+        Tests.class,
     };
 
 	@Override

@@ -8,6 +8,7 @@ import java.sql.SQLException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -21,6 +22,10 @@ public class Tests extends Procedure {
     public static Connection conn;
     private int shipID = 0;
     private int moveStepSize = 5;
+    
+    private String ships = GalaxyConstants.TABLENAME_SHIPS;
+    private String classes = GalaxyConstants.TABLENAME_CLASSES;
+    private String solarsystems = GalaxyConstants.TABLENAME_SOLARSYSTEMS;
     
     @Test
     public void cannotMoveOutOfSystem() throws SQLException {
@@ -79,16 +84,22 @@ public class Tests extends Procedure {
     }
     
     private void createTestValues() throws SQLException {
-        SQLStmt create = new SQLStmt(
-                "INSERT INTO " + GalaxyConstants.TABLENAME_SOLARSYSTEMS + 
-                " VALUES (0, 100000, 100000); " +
-                "INSERT INTO " + GalaxyConstants.TABLENAME_CLASSES + 
-                " VALUES (0, ?, 1000); " +
-                "INSERT INTO " + GalaxyConstants.TABLENAME_SHIPS + 
-                " VALUES (0, 0, 0, 0, 0);"
+        SQLStmt classInsert = new SQLStmt(
+                "INSERT INTO " + classes + " VALUES (0, ?, 1000);"
                 );
-        PreparedStatement ps = getPreparedStatement(conn, create);
+        SQLStmt systemInsert = new SQLStmt(
+                "INSERT INTO " + solarsystems + " VALUES (0, 100000, 100000);"
+                );
+        SQLStmt shipsInsert = new SQLStmt(
+                "INSERT INTO " + ships + " VALUES (0, 0, 0, 0, 0);"
+                );
+        
+        PreparedStatement ps = getPreparedStatement(conn, classInsert);
         ps.setString(1, "Test cruiser");
+        ps.execute();
+        ps = getPreparedStatement(conn, systemInsert);
+        ps.execute();
+        ps = getPreparedStatement(conn, shipsInsert);
         ps.execute();
     }
     
@@ -230,15 +241,21 @@ public class Tests extends Procedure {
     }
     
     private void removeTestValues() throws SQLException {
-        SQLStmt del = new SQLStmt(
-                "DELETE FROM " + GalaxyConstants.TABLENAME_SHIPS + 
-                " WHERE sid = 0; " +
-                "DELETE FROM " + GalaxyConstants.TABLENAME_SOLARSYSTEMS +
-                " WHERE ssid = 0; " +
-                "DELETE FROM " + GalaxyConstants.TABLENAME_CLASSES + 
-                " WHERE cid = 0;"
+        SQLStmt delShips = new SQLStmt(
+                "DELETE FROM " + ships + " WHERE sid = 0;"
                 );
-        PreparedStatement ps = getPreparedStatement(conn, del);
+        SQLStmt delSystem = new SQLStmt(
+                "DELETE FROM " + solarsystems + " WHERE ssid = 0;"
+                );
+        SQLStmt delClass = new SQLStmt(
+                "DELETE FROM " + classes + " WHERE cid = 0;"
+                );
+       
+        PreparedStatement ps = getPreparedStatement(conn, delShips);
+        ps.execute();
+        ps = getPreparedStatement(conn, delSystem);
+        ps.execute();
+        ps = getPreparedStatement(conn, delClass);
         ps.execute();
     }
     

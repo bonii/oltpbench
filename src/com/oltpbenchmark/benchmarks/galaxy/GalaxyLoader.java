@@ -7,6 +7,7 @@ import java.util.Random;
 
 import com.oltpbenchmark.api.Loader;
 import com.oltpbenchmark.catalog.Table;
+import com.oltpbenchmark.types.DatabaseType;
 import com.oltpbenchmark.util.SQLUtil;
 
 public class GalaxyLoader extends Loader {
@@ -17,9 +18,17 @@ public class GalaxyLoader extends Loader {
 
     @Override
     public void load() throws SQLException {
+        
+        boolean escapeNames = false;
+        if (this.getDatabaseType() == DatabaseType.POSTGRES) {
+            escapeNames = false;
+        }
+        if (this.getDatabaseType() == DatabaseType.SQLITE) {
+            escapeNames = true;
+        }
 
         Table tbl = getTableCatalog(GalaxyConstants.TABLENAME_CLASSES);
-        PreparedStatement ps = this.conn.prepareStatement(SQLUtil.getInsertSQL(tbl, false));
+        PreparedStatement ps = this.conn.prepareStatement(SQLUtil.getInsertSQL(tbl, escapeNames));
         for (int i = 0; i < GalaxyConstants.reachability.length; i++) {
             ps.setInt(1, i + 1); // Class ID (cid)
             ps.setString(2, GalaxyConstants.classes[i]); // Class name
@@ -30,7 +39,7 @@ public class GalaxyLoader extends Loader {
 
         Random rng = new Random();
         tbl = getTableCatalog(GalaxyConstants.TABLENAME_SOLARSYSTEMS);
-        ps = this.conn.prepareStatement(SQLUtil.getInsertSQL(tbl, false));
+        ps = this.conn.prepareStatement(SQLUtil.getInsertSQL(tbl, escapeNames));
         for (int i = 0; i < GalaxyConstants.NUM_SOLARSYSTEMS; i++) {
             ps.setInt(1, i + 1); // Solarsystem ID(ssid)
             ps.setInt(2, GalaxyConstants.x_max[i]); // x max
@@ -40,7 +49,7 @@ public class GalaxyLoader extends Loader {
         ps.executeBatch();
 
         tbl = getTableCatalog(GalaxyConstants.TABLENAME_SHIPS);
-        ps = this.conn.prepareStatement(SQLUtil.getInsertSQL(tbl, false));
+        ps = this.conn.prepareStatement(SQLUtil.getInsertSQL(tbl, escapeNames));
         for  (int i = 0; i < GalaxyConstants.NUM_SHIPS; i++) {
             int ssid = rng.nextInt(GalaxyConstants.NUM_SOLARSYSTEMS) + 1;
             int x = rng.nextInt(GalaxyConstants.x_max[ssid - 1]);

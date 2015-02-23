@@ -28,14 +28,14 @@ public abstract class AbstractTestCase<T extends BenchmarkModule> extends TestCa
     public static final DatabaseType DB_TYPE = DatabaseType.HSQLDB;
     
     // H2
-    // public static final String DB_CONNECTION = "jdbc:h2:mem:";
-    // public static final String DB_JDBC = "org.h2.Driver";
-    // public static final DatabaseType DB_TYPE = DatabaseType.H2;
+    //public static final String DB_CONNECTION = "jdbc:h2:mem:";
+    //public static final String DB_JDBC = "org.h2.Driver";
+    //public static final DatabaseType DB_TYPE = DatabaseType.H2;
     
     // SQLITE
-    // public static final String DB_CONNECTION = "jdbc:sqlite:/tmp/";
-    // public static final String DB_JDBC = "org.sqlite.JDBC";
-    // public static final DatabaseType DB_TYPE = DatabaseType.SQLITE;
+    //public static final String DB_CONNECTION = "jdbc:sqlite:/tmp/";
+    //public static final String DB_JDBC = "org.sqlite.JDBC";
+    //public static final DatabaseType DB_TYPE = DatabaseType.SQLITE;
     
     // -----------------------------------------------------------------
     
