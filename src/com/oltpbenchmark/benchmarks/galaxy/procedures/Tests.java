@@ -1,7 +1,6 @@
 package com.oltpbenchmark.benchmarks.galaxy.procedures;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -9,7 +8,6 @@ import java.sql.SQLException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -20,7 +18,7 @@ import com.oltpbenchmark.benchmarks.galaxy.GalaxyConstants;
 
 public class Tests extends Procedure {
     
-    private Connection conn;
+    public static Connection conn;
     private int shipID = 0;
     private int moveStepSize = 5;
     
@@ -246,17 +244,12 @@ public class Tests extends Procedure {
     
     @Before
     public void setup() throws SQLException {
-        conn = DriverManager.getConnection(
-                "jdbc:postgresql://127.0.0.1:5432/galaxy", 
-                "carljohnsen", 
-                "test");
         createTestValues();
     }
     
     @After
     public void tearDown() throws SQLException {
         removeTestValues();
-        conn.close();
     }
     
     @Test // TODO Handle solarsystem borders
