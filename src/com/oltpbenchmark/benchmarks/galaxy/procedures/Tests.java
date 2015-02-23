@@ -18,6 +18,7 @@ import com.oltpbenchmark.benchmarks.galaxy.GalaxyConstants;
 public class Tests extends Procedure {
 
     private Connection conn;
+    private Move moveProc;
     private int shipID = 0;
     private int moveStepSize = 5;
 
@@ -222,9 +223,8 @@ public class Tests extends Procedure {
     }
 
     private void moveDefined(int x, int y) throws SQLException {
-        Move proc = new Move();
         assertEquals("Move should be successfull", 0,
-                proc.run(this.conn, shipID, x, y));
+                moveProc.run(this.conn, shipID, x, y));
     }
 
     @Test
@@ -257,12 +257,11 @@ public class Tests extends Procedure {
     @Test // TODO Handle solarsystem borders
     public void oneMove() throws SQLException {
         createTestValues();
-        Move proc = new Move();
         int[] cords = getPosition();
         int newX = cords[0] + moveStepSize;
         int newY = cords[1] + moveStepSize;
         assertEquals("Move should be successfull", Move.MOVE_SUCCESSFUL,
-                proc.run(this.conn, shipID, moveStepSize, moveStepSize));
+                moveProc.run(this.conn, shipID, moveStepSize, moveStepSize));
         cords = getPosition();
         assertTrue("X should be near new position",
                 Math.abs(newX - cords[0]) <= 1);
@@ -281,8 +280,9 @@ public class Tests extends Procedure {
         ps.execute();
     }
 
-    public void run(Connection conn) throws SQLException {
+    public void run(Connection conn, Move moveProc) throws SQLException {
         this.conn = conn;
+        this.moveProc = moveProc;
         cannotMoveOutOfSystem();
         cannotMoveOnTopOfOther();
         manyMoves();
