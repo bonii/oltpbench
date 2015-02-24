@@ -13,39 +13,41 @@ import com.oltpbenchmark.api.SQLStmt;
 import com.oltpbenchmark.benchmarks.galaxy.GalaxyConstants;
 
 public class Move extends Procedure {
-    
+
+
+    // Class to hold a single coordinate
     private class Tuple {
         public int x;
         public int y;
-        
+
         public Tuple(final int x, final int y) {
             this.x = x;
             this.y = y;
         }
-        
+
         public boolean equals(Tuple other) {
             return this.x == other.x && this.y == other.y;
         }
     }
 
-    // potential return codes
+    // Potential return codes
     public static final long MOVE_SUCCESSFUL = 0;
     public static final long MOVE_NOT_SUCCESSFUL = 1;
     public static final long ERR_INVALID_SHIP = 1;
 
     // Check single tile if free
     public final SQLStmt checkTileStmt = new SQLStmt(
-        "SELECT x, y FROM " + GalaxyConstants.TABLENAME_SHIPS + 
+        "SELECT x, y FROM " + GalaxyConstants.TABLENAME_SHIPS +
         " WHERE x BETWEEN ?-1 AND ?+1 AND y BETWEEN ?-1 AND ?+1 AND ssid = ?" +
         " AND sid != ?;"
     );
-    
+
     // Get ship, class and solarsystem information
     public final SQLStmt getShipInfo = new SQLStmt(
-            "SELECT x, y, reachability, " + 
+            "SELECT x, y, reachability, " +
             GalaxyConstants.TABLENAME_SHIPS + ".ssid, x_max, y_max FROM " +
             GalaxyConstants.TABLENAME_SHIPS + " JOIN " +
-            GalaxyConstants.TABLENAME_CLASSES + " ON " + 
+            GalaxyConstants.TABLENAME_CLASSES + " ON " +
             GalaxyConstants.TABLENAME_SHIPS + ".class = " +
             GalaxyConstants.TABLENAME_CLASSES + ".cid JOIN " +
             GalaxyConstants.TABLENAME_SOLARSYSTEMS + " ON " +
@@ -55,11 +57,11 @@ public class Move extends Procedure {
 
     // Update ship position
     public final SQLStmt updateShipPosStmt = new SQLStmt(
-        "UPDATE " + GalaxyConstants.TABLENAME_SHIPS + 
+        "UPDATE " + GalaxyConstants.TABLENAME_SHIPS +
         " SET x = ?, y = ? WHERE sid = ?;"
     );
 
-    public long run(Connection conn, int shipId, int move_x, int move_y) 
+    public long run(Connection conn, int shipId, int move_x, int move_y)
             throws SQLException {
 
         PreparedStatement ps = getPreparedStatement(conn, getShipInfo);
@@ -101,6 +103,8 @@ public class Move extends Procedure {
 
         int new_x = Math.max(Math.min(x_max, x + move_x), 0);
         int new_y = Math.max(Math.min(y_max, y + move_y), 0);
+
+
         ps = getPreparedStatement(conn, checkTileStmt);
         ps.setInt(1, new_x);
         ps.setInt(2, new_x);
@@ -111,16 +115,16 @@ public class Move extends Procedure {
         rs = ps.executeQuery();
 
         ArrayList<Tuple> possibles = new ArrayList<Tuple>();
-        Tuple min = new Tuple(Math.max(0, new_x - 1), 
+        Tuple min = new Tuple(Math.max(0, new_x - 1),
                 Math.max(0, new_y));
-        Tuple max = new Tuple(Math.min(x_max, new_x + 1), 
+        Tuple max = new Tuple(Math.min(x_max, new_x + 1),
                 Math.min(y_max, new_y + 1));
-        for (int i = min.x; i <= max.x; i++) { 
+        for (int i = min.x; i <= max.x; i++) {
             for (int j = min.y; j <= max.y; j++) {
                 possibles.add(new Tuple(i,j));
             }
         }
-        
+
         try {
             while (rs.next()) {
                 Tuple taken = new Tuple(rs.getInt(1), rs.getInt(2));
@@ -141,7 +145,7 @@ public class Move extends Procedure {
             new_x = rand.x;
             new_y = rand.y;
         }
-        
+
         ps = getPreparedStatement(conn, updateShipPosStmt);
         ps.setInt(1, new_x);
         ps.setInt(2, new_y);

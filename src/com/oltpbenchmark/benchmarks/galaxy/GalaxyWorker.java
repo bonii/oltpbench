@@ -23,6 +23,8 @@ public class GalaxyWorker extends Worker {
             Move proc = getProcedure(Move.class);
             assert (proc != null);
             Random rng = new Random();
+
+            // Generate a random move vector, within reason(MAX_MOVE)
             int ship_id = rng.nextInt(GalaxyConstants.NUM_SHIPS) + 1;
             int move_x = rng.nextInt(GalaxyConstants.MAX_MOVE * 2) - GalaxyConstants.MAX_MOVE;
             int move_y = rng.nextInt(GalaxyConstants.MAX_MOVE * 2) - GalaxyConstants.MAX_MOVE;
@@ -30,6 +32,8 @@ public class GalaxyWorker extends Worker {
             conn.commit();
             return TransactionStatus.SUCCESS;
         }
+
+        // Give the Tests procedure the needed arguments
         if (txnType.getProcedureClass().equals(Tests.class)) {
             Tests proc = getProcedure(Tests.class);
             Move moveProc = getProcedure(Move.class);
