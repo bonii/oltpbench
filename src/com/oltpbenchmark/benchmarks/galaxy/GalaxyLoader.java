@@ -10,15 +10,22 @@ import com.oltpbenchmark.catalog.Table;
 import com.oltpbenchmark.types.DatabaseType;
 import com.oltpbenchmark.util.SQLUtil;
 
+/**
+ * A class that prepares the database for the benchmark
+ */
 public class GalaxyLoader extends Loader {
 
+    /**
+     * Creates a new instance of the GalaxyLoader class
+     * @param benchmark The benchmark class the loader is called from
+     * @param conn The connection to the database to be prepared
+     */
     public GalaxyLoader(GalaxyBenchmark benchmark, Connection conn) {
         super(benchmark, conn);
     }
 
     @Override
     public void load() throws SQLException {
-        
         boolean escapeNames = false;
         if (this.getDatabaseType() == DatabaseType.POSTGRES) {
             escapeNames = false;

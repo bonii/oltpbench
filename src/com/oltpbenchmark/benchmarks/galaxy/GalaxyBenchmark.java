@@ -12,9 +12,15 @@ import com.oltpbenchmark.api.Loader;
 import com.oltpbenchmark.api.Worker;
 import com.oltpbenchmark.benchmarks.galaxy.procedures.Move;
 
+/**
+ * A class, which handles the workers, the loader and the config
+ */
 public class GalaxyBenchmark extends BenchmarkModule {
 
-
+    /**
+     * Creates a new instance of the GalaxyBenchmark class
+     * @param workConf The configuration the benchmark will run with
+     */
     public GalaxyBenchmark(WorkloadConfiguration workConf) {
         super("galaxy", workConf, true);
     }

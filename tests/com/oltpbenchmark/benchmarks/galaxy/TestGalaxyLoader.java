@@ -2,6 +2,9 @@ package com.oltpbenchmark.benchmarks.galaxy;
 
 import com.oltpbenchmark.api.AbstractTestLoader;
 
+/**
+ * A class that sets up the loader to test the Galaxy benchmark
+ */
 public class TestGalaxyLoader extends AbstractTestLoader<GalaxyBenchmark> {
 
     @Override

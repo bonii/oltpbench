@@ -3,11 +3,14 @@ package com.oltpbenchmark.benchmarks.galaxy;
 import com.oltpbenchmark.api.AbstractTestBenchmarkModule;
 import com.oltpbenchmark.benchmarks.galaxy.procedures.*;
 
+/**
+ * A class containing the benchmark and the list of procedures to test
+ */
 public class TestGalaxyBenchmark extends AbstractTestBenchmarkModule<GalaxyBenchmark> {
 
     public static final Class<?> PROC_CLASSES[] = {
         Move.class,
-        Tests.class,
+        TestMove.class,
     };
 
 	@Override

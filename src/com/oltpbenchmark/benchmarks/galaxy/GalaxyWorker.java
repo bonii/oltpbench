@@ -7,12 +7,19 @@ import com.oltpbenchmark.api.Procedure.UserAbortException;
 import com.oltpbenchmark.api.TransactionType;
 import com.oltpbenchmark.api.Worker;
 import com.oltpbenchmark.benchmarks.galaxy.procedures.Move;
-import com.oltpbenchmark.benchmarks.galaxy.procedures.Tests;
+import com.oltpbenchmark.benchmarks.galaxy.procedures.TestMove;
 import com.oltpbenchmark.types.TransactionStatus;
 
+/**
+ * A class, which handles the work a worker needs to do
+ */
 public class GalaxyWorker extends Worker {
 
-
+    /**
+     * Creates a new instance of the GalaxyWorker class
+     * @param benchmarkModule The benchmark the worker is initialized from
+     * @param id The id of the worker
+     */
     public GalaxyWorker(GalaxyBenchmark benchmarkModule, int id) {
         super(benchmarkModule, id);
     }
@@ -34,8 +41,8 @@ public class GalaxyWorker extends Worker {
         }
 
         // Give the Tests procedure the needed arguments
-        if (txnType.getProcedureClass().equals(Tests.class)) {
-            Tests proc = getProcedure(Tests.class);
+        if (txnType.getProcedureClass().equals(TestMove.class)) {
+            TestMove proc = getProcedure(TestMove.class);
             Move moveProc = getProcedure(Move.class);
             proc.run(conn, moveProc);
             return TransactionStatus.SUCCESS;

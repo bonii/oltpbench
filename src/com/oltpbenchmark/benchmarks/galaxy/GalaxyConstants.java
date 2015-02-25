@@ -29,6 +29,9 @@
 
 package com.oltpbenchmark.benchmarks.galaxy;
 
+/**
+ * A class containing all the constant values used by the benchmark
+ */
 public abstract class GalaxyConstants {
 
   public static final int NUM_CLASSES = 5;

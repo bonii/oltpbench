@@ -5,8 +5,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import org.junit.Test;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -15,7 +13,10 @@ import com.oltpbenchmark.api.Procedure;
 import com.oltpbenchmark.api.SQLStmt;
 import com.oltpbenchmark.benchmarks.galaxy.GalaxyConstants;
 
-public class Tests extends Procedure {
+/**
+ * A class that checks the correctness of the Move procedure
+ */
+public class TestMove extends Procedure {
 
     private Connection conn;
     private Move moveProc;
@@ -92,7 +93,10 @@ public class Tests extends Procedure {
                     GalaxyConstants.TABLENAME_SHIPS + ";"
             );
 
-    @Test
+    /**
+     * Tests that a ship will always stay within the borders of the solarsystem
+     * @throws SQLException
+     */
     public void cannotMoveOutOfSystem() throws SQLException {
         createTestValues();
         int[] maxAndReach = getSystemMaxAndReach();
@@ -129,7 +133,10 @@ public class Tests extends Procedure {
         removeTestValues();
     }
 
-    @Test
+    /**
+     * Tests that two ships cannot move on top of each other
+     * @throws SQLException
+     */
     public void cannotMoveOnTopOfOther() throws SQLException {
         createTestValues();
         moveDefined(moveStepSize, moveStepSize);
@@ -146,8 +153,11 @@ public class Tests extends Procedure {
         removeTestValues();
     }
 
+    /**
+     * Fills the database with known test values
+     * @throws SQLException
+     */
     private void createTestValues() throws SQLException {
-
         PreparedStatement ps = getPreparedStatement(this.conn, this.classInsert);
         ps.setString(1, "Test cruiser");
         ps.execute();
@@ -157,6 +167,11 @@ public class Tests extends Procedure {
         ps.execute();
     }
 
+    /**
+     * Gets the position of the ship with id TestMove.shipID
+     * @return An integer array holding the position of the ship
+     * @throws SQLException
+     */
     private int[] getPosition() throws SQLException {
         PreparedStatement ps = getPreparedStatement(this.conn, this.getPos);
         ps.setInt(1, shipID);
@@ -172,6 +187,12 @@ public class Tests extends Procedure {
         return cords;
     }
 
+    /**
+     * Gets the position and reachability of the ship with id TestMove.shipID
+     * @return An integer array containing the position of the ship and its 
+     * reachability
+     * @throws SQLException
+     */
     private int[] getPositionAndReach() throws SQLException {
         PreparedStatement ps = getPreparedStatement(this.conn, this.getPosReach);
         ps.setInt(1, shipID);
@@ -188,6 +209,13 @@ public class Tests extends Procedure {
         return cords;
     }
 
+    /**
+     * Returns the reachability of the ship and the max position in the 
+     * solarsystem the ship resides in, from the ship with it TestMove.shipID
+     * @return An integer array containing the reachability of the ship, and 
+     * the maximum position of the solarsystem
+     * @throws SQLException
+     */
     private int[] getSystemMaxAndReach() throws SQLException {
         PreparedStatement ps = getPreparedStatement(this.conn, getMaxAndReach);
         ps.setInt(1, shipID);
@@ -204,7 +232,10 @@ public class Tests extends Procedure {
         return info;
     }
 
-    @Test // TODO edit this test to handle random tile
+    /**
+     * Tests the correctness of multiple calls of the Move procedure
+     * @throws SQLException
+     */
     public void manyMoves() throws SQLException {
         createTestValues();
         int numMoves = 100;
@@ -222,12 +253,22 @@ public class Tests extends Procedure {
         removeTestValues();
     }
 
+    /**
+     * Calls the Move procedure with given values, and checks that it succeeds
+     * @param x The relative x value to be moved
+     * @param y The relative y value to be moved
+     * @throws SQLException
+     */
     private void moveDefined(int x, int y) throws SQLException {
         assertEquals("Move should be successfull", 0,
                 moveProc.run(this.conn, shipID, x, y));
     }
 
-    @Test
+    /**
+     * Checks that there are no two ships in the database, that has the same 
+     * position and solarsystem id
+     * @throws SQLException
+     */
     public void noShipsInSamePos() throws SQLException {
         PreparedStatement ps = getPreparedStatement(this.conn, this.findDuplicates);
         ResultSet rs = ps.executeQuery();
@@ -238,7 +279,10 @@ public class Tests extends Procedure {
         }
     }
 
-    @Test
+    /**
+     * Checks that the ship count is correct
+     * @throws SQLException
+     */
     public void noShipsDisappeared() throws SQLException {
         createTestValues();
         PreparedStatement ps = getPreparedStatement(this.conn, countShips);
@@ -254,7 +298,10 @@ public class Tests extends Procedure {
         removeTestValues();
     }
 
-    @Test // TODO Handle solarsystem borders
+    /**
+     * Tests that one call to the Move procedure moves the ship correct
+     * @throws SQLException
+     */
     public void oneMove() throws SQLException {
         createTestValues();
         int[] cords = getPosition();
@@ -270,8 +317,11 @@ public class Tests extends Procedure {
         removeTestValues();
     }
 
+    /**
+     * Removes the known test values from the database
+     * @throws SQLException
+     */
     private void removeTestValues() throws SQLException {
-
         PreparedStatement ps = getPreparedStatement(this.conn, this.delShips);
         ps.execute();
         ps = getPreparedStatement(this.conn, this.delSystem);
@@ -280,6 +330,12 @@ public class Tests extends Procedure {
         ps.execute();
     }
 
+    /**
+     * Sets the connection and procedure variables, and runs all the tests
+     * @param conn The connection to the database
+     * @param moveProc The Move procedure
+     * @throws SQLException
+     */
     public void run(Connection conn, Move moveProc) throws SQLException {
         this.conn = conn;
         this.moveProc = moveProc;
@@ -292,7 +348,11 @@ public class Tests extends Procedure {
         withinReachability();
     }
 
-    @Test // TODO Handle solarsystem borders
+    /**
+     * Tests that the Move procedure will cap the movement of the ship to 
+     * its reachability
+     * @throws SQLException
+     */
     public void withinReachability() throws SQLException {
         createTestValues();
         int[] cords = getPositionAndReach();
