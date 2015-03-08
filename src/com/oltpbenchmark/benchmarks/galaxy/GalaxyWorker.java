@@ -26,28 +26,17 @@ public class GalaxyWorker extends Worker {
 
     @Override
     protected TransactionStatus executeWork(TransactionType txnType) throws UserAbortException, SQLException {
-        if (txnType.getProcedureClass().equals(Move.class)) {
-            Move proc = getProcedure(Move.class);
-            assert (proc != null);
-            Random rng = new Random();
+        Move proc = getProcedure(Move.class);
+        assert (proc != null);
+        Random rng = new Random();
 
-            // Generate a random move vector, within reason(MAX_MOVE)
-            int ship_id = rng.nextInt(GalaxyConstants.NUM_SHIPS) + 1;
-            int move_x = rng.nextInt(GalaxyConstants.MAX_MOVE * 2) - GalaxyConstants.MAX_MOVE;
-            int move_y = rng.nextInt(GalaxyConstants.MAX_MOVE * 2) - GalaxyConstants.MAX_MOVE;
-            proc.run(conn, ship_id, move_x, move_y);
-            conn.commit();
-            return TransactionStatus.SUCCESS;
-        }
-
-        // Give the Tests procedure the needed arguments
-        if (txnType.getProcedureClass().equals(TestMove.class)) {
-            TestMove proc = getProcedure(TestMove.class);
-            Move moveProc = getProcedure(Move.class);
-            proc.run(conn, moveProc);
-            return TransactionStatus.SUCCESS;
-        }
-        return TransactionStatus.RETRY_DIFFERENT;
+        // Generate a random move vector, within reason(MAX_MOVE)
+        int ship_id = rng.nextInt(GalaxyConstants.NUM_SHIPS) + 1;
+        int move_x = rng.nextInt(GalaxyConstants.MAX_MOVE * 2) - GalaxyConstants.MAX_MOVE;
+        int move_y = rng.nextInt(GalaxyConstants.MAX_MOVE * 2) - GalaxyConstants.MAX_MOVE;
+        proc.run(conn, ship_id, move_x, move_y);
+        conn.commit();
+        return TransactionStatus.SUCCESS;
     }
 
 }
