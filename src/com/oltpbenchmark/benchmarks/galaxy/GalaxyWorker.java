@@ -34,7 +34,7 @@ public class GalaxyWorker extends Worker {
         int ship_id = rng.nextInt(GalaxyConstants.NUM_SHIPS) + 1;
         int move_x = rng.nextInt(GalaxyConstants.MAX_MOVE * 2) - GalaxyConstants.MAX_MOVE;
         int move_y = rng.nextInt(GalaxyConstants.MAX_MOVE * 2) - GalaxyConstants.MAX_MOVE;
-        proc.run(conn, ship_id, move_x, move_y);
+        proc.run(conn, ship_id, move_x, move_y, rng);
         conn.commit();
         return TransactionStatus.SUCCESS;
     }
