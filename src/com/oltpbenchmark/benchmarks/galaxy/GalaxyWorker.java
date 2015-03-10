@@ -7,7 +7,6 @@ import com.oltpbenchmark.api.Procedure.UserAbortException;
 import com.oltpbenchmark.api.TransactionType;
 import com.oltpbenchmark.api.Worker;
 import com.oltpbenchmark.benchmarks.galaxy.procedures.Move;
-import com.oltpbenchmark.benchmarks.galaxy.procedures.TestMove;
 import com.oltpbenchmark.types.TransactionStatus;
 
 /**

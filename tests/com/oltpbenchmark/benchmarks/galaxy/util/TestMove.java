@@ -1,9 +1,10 @@
-package com.oltpbenchmark.benchmarks.galaxy.procedures;
+package com.oltpbenchmark.benchmarks.galaxy.util;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Random;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -12,6 +13,7 @@ import static org.junit.Assert.assertTrue;
 import com.oltpbenchmark.api.Procedure;
 import com.oltpbenchmark.api.SQLStmt;
 import com.oltpbenchmark.benchmarks.galaxy.GalaxyConstants;
+import com.oltpbenchmark.benchmarks.galaxy.procedures.Move;
 
 /**
  * A class that checks the correctness of the Move procedure
@@ -20,6 +22,7 @@ public class TestMove extends Procedure {
 
     private Connection conn;
     private Move moveProc;
+    private Random rng;
     private int shipID = 0;
     private int moveStepSize = 5;
 
@@ -261,7 +264,7 @@ public class TestMove extends Procedure {
      */
     private void moveDefined(int x, int y) throws SQLException {
         assertEquals("Move should be successfull", 0,
-                moveProc.run(this.conn, shipID, x, y));
+                moveProc.run(this.conn, shipID, x, y, rng));
     }
 
     /**
@@ -308,7 +311,7 @@ public class TestMove extends Procedure {
         int newX = cords[0] + moveStepSize;
         int newY = cords[1] + moveStepSize;
         assertEquals("Move should be successfull", Move.MOVE_SUCCESSFUL,
-                moveProc.run(this.conn, shipID, moveStepSize, moveStepSize));
+                moveProc.run(this.conn, shipID, moveStepSize, moveStepSize, rng));
         cords = getPosition();
         assertTrue("X should be near new position",
                 Math.abs(newX - cords[0]) <= 1);
@@ -336,9 +339,10 @@ public class TestMove extends Procedure {
      * @param moveProc The Move procedure
      * @throws SQLException
      */
-    public void run(Connection conn, Move moveProc) throws SQLException {
+    public void run(Connection conn, Move moveProc, Random rng) throws SQLException {
         this.conn = conn;
         this.moveProc = moveProc;
+        this.rng = rng;
         cannotMoveOutOfSystem();
         cannotMoveOnTopOfOther();
         manyMoves();
