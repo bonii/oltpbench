@@ -21,7 +21,7 @@ public class Move extends Procedure {
     // Potential return codes
     public static final long MOVE_SUCCESSFUL = 0;
     public static final long MOVE_NOT_SUCCESSFUL = 1;
-    public static final long ERR_INVALID_SHIP = 1;
+    public static final long ERR_INVALID_SHIP = 2;
 
     // Check single tile if free
     public final SQLStmt checkTileStmt = new SQLStmt(

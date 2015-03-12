@@ -6,20 +6,18 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Random;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import junit.framework.TestCase;
 
-import com.oltpbenchmark.api.Procedure;
-import com.oltpbenchmark.api.SQLStmt;
+import org.junit.Test;
+
 import com.oltpbenchmark.benchmarks.galaxy.GalaxyConstants;
 import com.oltpbenchmark.benchmarks.galaxy.procedures.Move;
 
 /**
  * A class that checks the correctness of the Move procedure
  */
-public class TestMove extends Procedure {
-
+public class TestMove extends TestCase {
+    
     private Connection conn;
     private Move moveProc;
     private Random rng;
@@ -30,71 +28,32 @@ public class TestMove extends Procedure {
     private String classes = GalaxyConstants.TABLENAME_CLASSES;
     private String solarsystems = GalaxyConstants.TABLENAME_SOLARSYSTEMS;
 
-    public final SQLStmt tmpShip = new SQLStmt(
-                "INSERT INTO " + GalaxyConstants.TABLENAME_SHIPS +
-                " VALUES (?, 0, 0, 0, 0);"
-                );
-
-    public final SQLStmt del = new SQLStmt(
-                "DELETE FROM " + GalaxyConstants.TABLENAME_SHIPS +
-                " WHERE sid = ?;"
-                );
-
-    public final SQLStmt classInsert = new SQLStmt(
-                "INSERT INTO " + classes + " VALUES (0, ?, 1000);"
-                );
-    public final SQLStmt systemInsert = new SQLStmt(
-                "INSERT INTO " + solarsystems + " VALUES (0, 100000, 100000);"
-                );
-    public final SQLStmt shipsInsert = new SQLStmt(
-                "INSERT INTO " + ships + " VALUES (0, 0, 0, 0, 0);"
-                );
-
-    public final SQLStmt getPos = new SQLStmt(
-                "SELECT x, y FROM " + GalaxyConstants.TABLENAME_SHIPS +
-                " WHERE sid = ?;"
-                );
-
-    public final SQLStmt getPosReach = new SQLStmt(
-                "SELECT x, y, reachability FROM " +
-                        GalaxyConstants.TABLENAME_SHIPS + " JOIN " +
-                        GalaxyConstants.TABLENAME_CLASSES + " ON " +
-                        GalaxyConstants.TABLENAME_SHIPS + ".class = " +
-                        GalaxyConstants.TABLENAME_CLASSES + ".cid " +
-                        "WHERE sid = ?;"
-                );
-
-    public final SQLStmt findDuplicates = new SQLStmt(
-                "SELECT x, y, ssid FROM ships " +
-                        "GROUP BY x, y, ssid HAVING COUNT(*) > 1;"
-                );
-
-    public final SQLStmt delShips = new SQLStmt(
-                "DELETE FROM " + ships + " WHERE sid = 0;"
-                );
-
-    public final SQLStmt delSystem = new SQLStmt(
-                "DELETE FROM " + solarsystems + " WHERE ssid = 0;"
-                );
-
-    public final SQLStmt delClass = new SQLStmt(
-                "DELETE FROM " + classes + " WHERE cid = 0;"
-                );
-
-    public final SQLStmt getMaxAndReach = new SQLStmt(
-            "SELECT x_max, y_max, reachability FROM " +
-            GalaxyConstants.TABLENAME_SHIPS + " JOIN " +
-            GalaxyConstants.TABLENAME_SOLARSYSTEMS + " ON " +
-            GalaxyConstants.TABLENAME_SHIPS + ".ssid = " +
-            GalaxyConstants.TABLENAME_SOLARSYSTEMS + ".ssid JOIN " +
-            GalaxyConstants.TABLENAME_CLASSES + " ON " +
-            GalaxyConstants.TABLENAME_SHIPS + ".class = " +
-            GalaxyConstants.TABLENAME_CLASSES + ".cid WHERE sid = ?;"
-            );
-    public final SQLStmt countShips = new SQLStmt(
-            "SELECT COUNT(*) FROM " +
-                    GalaxyConstants.TABLENAME_SHIPS + ";"
-            );
+    public final String createTmpClass = "INSERT INTO " + classes +
+            " VALUES (0, ?, 1000);";
+    public final String createTmpShip = "INSERT INTO " + ships + 
+            " VALUES (?, 0, 0, 0, 0);";
+    public final String createTmpSystem = "INSERT INTO " + solarsystems +
+            " VALUES (0, 100000, 100000);";
+    public final String deleteTmpClass = "DELETE FROM " + classes +
+            " WHERE cid = 0;";
+    public final String deleteTmpShip = "DELETE FROM " + ships +
+            " WHERE sid = ?;";
+    public final String deleteTmpSystem = "DELETE FROM " + solarsystems +
+            " WHERE ssid = 0;";
+    public final String findShipsInSamePosition = "SELECT x, y, ssid FROM " +
+            ships + " GROUP BY x, y, ssid HAVING COUNT(*) > 1;";
+    public final String getShipCount = "SELECT COUNT(*) FROM " + ships + ";";
+    public final String getShipPosition = "SELECT x, y FROM " + ships + 
+            " WHERE sid = ?;";
+    public final String getShipPositionAndReach = 
+            "SELECT x, y, reachability FROM " + ships + 
+            " JOIN " + classes + " ON " + ships + ".class = " + 
+            classes + ".cid WHERE sid = ?;";
+    public final String getSystemMaxAndReachability = 
+            "SELECT x_max, y_max, reachability FROM " + ships + " JOIN " + 
+            solarsystems + " ON " + ships + ".ssid = " + solarsystems + 
+            ".ssid JOIN " + classes + " ON " + ships + ".class = " + classes +
+            ".cid WHERE sid = ?;";
 
     /**
      * Tests that a ship will always stay within the borders of the solarsystem
@@ -145,11 +104,11 @@ public class TestMove extends Procedure {
         moveDefined(moveStepSize, moveStepSize);
         int tmp = shipID;
         shipID = -1;
-        PreparedStatement ps = getPreparedStatement(this.conn, this.tmpShip);
+        PreparedStatement ps = conn.prepareStatement(createTmpShip);
         ps.setInt(1, shipID);
         ps.execute();
         noShipsInSamePos();
-        ps = getPreparedStatement(this.conn, this.del);
+        ps = conn.prepareStatement(deleteTmpShip);
         ps.setInt(1, shipID);
         ps.execute();
         shipID = tmp;
@@ -161,12 +120,13 @@ public class TestMove extends Procedure {
      * @throws SQLException
      */
     private void createTestValues() throws SQLException {
-        PreparedStatement ps = getPreparedStatement(this.conn, this.classInsert);
+        PreparedStatement ps = conn.prepareStatement(createTmpClass);
         ps.setString(1, "Test cruiser");
         ps.execute();
-        ps = getPreparedStatement(this.conn, this.systemInsert);
+        ps = conn.prepareStatement(createTmpSystem);
         ps.execute();
-        ps = getPreparedStatement(this.conn, this.shipsInsert);
+        ps = conn.prepareStatement(createTmpShip);
+        ps.setInt(1, shipID);
         ps.execute();
     }
 
@@ -176,7 +136,7 @@ public class TestMove extends Procedure {
      * @throws SQLException
      */
     private int[] getPosition() throws SQLException {
-        PreparedStatement ps = getPreparedStatement(this.conn, this.getPos);
+        PreparedStatement ps = conn.prepareStatement(getShipPosition);
         ps.setInt(1, shipID);
         ResultSet rs = ps.executeQuery();
         int[] cords = new int[2];
@@ -197,7 +157,7 @@ public class TestMove extends Procedure {
      * @throws SQLException
      */
     private int[] getPositionAndReach() throws SQLException {
-        PreparedStatement ps = getPreparedStatement(this.conn, this.getPosReach);
+        PreparedStatement ps = conn.prepareStatement(getShipPositionAndReach);
         ps.setInt(1, shipID);
         ResultSet rs = ps.executeQuery();
         int[] cords = new int[3];
@@ -220,7 +180,7 @@ public class TestMove extends Procedure {
      * @throws SQLException
      */
     private int[] getSystemMaxAndReach() throws SQLException {
-        PreparedStatement ps = getPreparedStatement(this.conn, getMaxAndReach);
+        PreparedStatement ps = conn.prepareStatement(getSystemMaxAndReachability);
         ps.setInt(1, shipID);
         ResultSet rs = ps.executeQuery();
         int[] info = new int[3];
@@ -273,7 +233,7 @@ public class TestMove extends Procedure {
      * @throws SQLException
      */
     public void noShipsInSamePos() throws SQLException {
-        PreparedStatement ps = getPreparedStatement(this.conn, this.findDuplicates);
+        PreparedStatement ps = conn.prepareStatement(findShipsInSamePosition);
         ResultSet rs = ps.executeQuery();
         try {
             assertFalse("Query should not return anything", rs.next());
@@ -288,7 +248,7 @@ public class TestMove extends Procedure {
      */
     public void noShipsDisappeared() throws SQLException {
         createTestValues();
-        PreparedStatement ps = getPreparedStatement(this.conn, countShips);
+        PreparedStatement ps = conn.prepareStatement(getShipCount);
         ResultSet rs = ps.executeQuery();
         try {
             assertTrue("Query should return something", rs.next());
@@ -325,11 +285,12 @@ public class TestMove extends Procedure {
      * @throws SQLException
      */
     private void removeTestValues() throws SQLException {
-        PreparedStatement ps = getPreparedStatement(this.conn, this.delShips);
+        PreparedStatement ps = conn.prepareStatement(deleteTmpShip);
+        ps.setInt(1, shipID);
         ps.execute();
-        ps = getPreparedStatement(this.conn, this.delSystem);
+        ps = conn.prepareStatement(deleteTmpSystem);
         ps.execute();
-        ps = getPreparedStatement(this.conn, this.delClass);
+        ps = conn.prepareStatement(deleteTmpClass);
         ps.execute();
     }
 
@@ -339,6 +300,7 @@ public class TestMove extends Procedure {
      * @param moveProc The Move procedure
      * @throws SQLException
      */
+    @Test
     public void run(Connection conn, Move moveProc, Random rng) throws SQLException {
         this.conn = conn;
         this.moveProc = moveProc;
