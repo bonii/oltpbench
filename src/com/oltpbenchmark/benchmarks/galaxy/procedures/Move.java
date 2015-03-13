@@ -11,7 +11,7 @@ import java.lang.Math;
 import com.oltpbenchmark.api.Procedure;
 import com.oltpbenchmark.api.SQLStmt;
 import com.oltpbenchmark.benchmarks.galaxy.GalaxyConstants;
-import com.oltpbenchmark.benchmarks.galaxy.util.Coordinate;
+import com.oltpbenchmark.util.Pair;
 
 /**
  * A class containing the Move procedure
@@ -61,7 +61,7 @@ public class Move extends Procedure {
      * @param move_x Relative x position to move
      * @param move_y Relative y position to move
      * @return MOVE_SUCCESSFUL if the move was possible and
-     * MOVE_NOT_SUCCESSFUL if not
+     * MOVE_NOT_SUCCESSFUL if not and ERR_INVALID_SHIP if the ship didn't exist
      * @throws SQLException
      */
     public long run(Connection conn, int shipId, int move_x, int move_y, Random rng)
@@ -70,23 +70,21 @@ public class Move extends Procedure {
         PreparedStatement ps = getPreparedStatement(conn, getShipInfo);
         ps.setInt(1, shipId);
         ResultSet rs = ps.executeQuery();
-        int x;
-        int y;
+        Pair<Integer, Integer> position;
         int reachability;
         int ssid;
-        int x_max;
-        int y_max;
+        Pair<Integer, Integer> systemMax;
         try {
             if (!rs.next()) {
                 System.out.println("Ship: " + Integer.toString(shipId));
                 return ERR_INVALID_SHIP;
             } else {
-                x = rs.getInt(1);
-                y = rs.getInt(2);
+                position = new Pair<Integer, Integer>
+                        (rs.getInt(1), rs.getInt(2));
                 reachability = rs.getInt(3);
                 ssid = rs.getInt(4);
-                x_max = rs.getInt(5);
-                y_max = rs.getInt(6);
+                systemMax = new Pair<Integer, Integer>
+                        (rs.getInt(5), rs.getInt(6));
             }
         } finally {
             rs.close();
@@ -103,34 +101,39 @@ public class Move extends Procedure {
         } else {
             move_y = Math.min(move_y, reachability);
         }
-        int new_x = Math.max(Math.min(x_max, x + move_x), 0);
-        int new_y = Math.max(Math.min(y_max, y + move_y), 0);
+        Pair<Integer, Integer> newPosition = new Pair<Integer, Integer>
+                (Math.max(Math.min(systemMax.first, position.first + move_x), 0),
+                 Math.max(Math.min(systemMax.second, position.second + move_y), 0));
 
         // Prepare the list of possible positions
-        ArrayList<Coordinate> possibles = new ArrayList<Coordinate>();
-        Coordinate min = new Coordinate(Math.max(0, new_x - 1),
-                Math.max(0, new_y));
-        Coordinate max = new Coordinate(Math.min(x_max, new_x + 1),
-                Math.min(y_max, new_y + 1));
-        for (int i = min.x; i <= max.x; i++) {
-            for (int j = min.y; j <= max.y; j++) {
-                possibles.add(new Coordinate(i,j));
+        ArrayList<Pair<Integer, Integer>> possibles = 
+                new ArrayList<Pair<Integer, Integer>>();
+        Pair<Integer, Integer> min = new Pair<Integer, Integer>
+                (Math.max(0, newPosition.first - 1), 
+                 Math.max(0, newPosition.second));
+        Pair<Integer, Integer> max = new Pair<Integer, Integer>
+                (Math.min(systemMax.first, systemMax.first + 1), 
+                 Math.min(systemMax.second, systemMax.second + 1));
+        for (int i = min.first; i <= max.first; i++) {
+            for (int j = min.second; j <= max.second; j++) {
+                possibles.add(new Pair<Integer, Integer>(i,j));
             }
         }
 
         // Get all ships in the window
         // and remove them from the possible positions
         ps = getPreparedStatement(conn, checkTileStmt);
-        ps.setInt(1, new_x);
-        ps.setInt(2, new_x);
-        ps.setInt(3, new_y);
-        ps.setInt(4, new_y);
+        ps.setInt(1, newPosition.first);
+        ps.setInt(2, newPosition.first);
+        ps.setInt(3, newPosition.second);
+        ps.setInt(4, newPosition.second);
         ps.setInt(5, ssid);
         ps.setInt(6, shipId);
         rs = ps.executeQuery();
         try {
             while (rs.next()) {
-                Coordinate taken = new Coordinate(rs.getInt(1), rs.getInt(2));
+                Pair<Integer, Integer> taken = new Pair<Integer, Integer>
+                        (rs.getInt(1), rs.getInt(2));
                 for (int i = 0; i < possibles.size(); i++) {
                     if (taken.equals(possibles.get(i))) {
                         possibles.remove(i);
@@ -145,15 +148,13 @@ public class Move extends Procedure {
         if (possibles.size() == 0) {
             return MOVE_NOT_SUCCESSFUL;
         } else {
-            Coordinate rand = possibles.get(rng.nextInt(possibles.size()));
-            new_x = rand.x;
-            new_y = rand.y;
+            newPosition = possibles.get(rng.nextInt(possibles.size()));
         }
 
         // Update the ships position
         ps = getPreparedStatement(conn, updateShipPosStmt);
-        ps.setInt(1, new_x);
-        ps.setInt(2, new_y);
+        ps.setInt(1, newPosition.first);
+        ps.setInt(2, newPosition.second);
         ps.setInt(3, shipId);
         ps.execute();
 

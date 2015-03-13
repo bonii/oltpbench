@@ -12,6 +12,7 @@ import org.junit.Test;
 
 import com.oltpbenchmark.benchmarks.galaxy.GalaxyConstants;
 import com.oltpbenchmark.benchmarks.galaxy.procedures.Move;
+import com.oltpbenchmark.util.Pair;
 
 /**
  * A class that checks the correctness of the Move procedure
@@ -62,36 +63,36 @@ public class TestMove extends TestCase {
     public void cannotMoveOutOfSystem() throws SQLException {
         createTestValues();
         int[] maxAndReach = getSystemMaxAndReach();
-        int xMax = maxAndReach[0];
-        int yMax = maxAndReach[1];
+        Pair<Integer, Integer> max = new Pair<Integer, Integer>
+                (maxAndReach[0], maxAndReach[1]);
         int reach = maxAndReach[2];
 
         // Try to move to -1 x and y
         moveDefined(-1, 0);
-        int[] cords = getPosition();
+        Pair<Integer, Integer> position = getPosition();
         assertTrue("Ship x should still be near 0",
-                cords[0] == 0 || cords[0] == 1);
+                position.first == 0 || position.first == 1);
         moveDefined(0, -1);
-        cords = getPosition();
+        position = getPosition();
         assertTrue("Ship y should still be near 0",
-                cords[1] == 0 || cords[1] == 1);
+                position.second == 0 || position.second == 1);
 
-        int iters = (xMax / reach) + 1;
+        int iters = (max.first / reach) + 1;
         assertTrue("asdf", iters >= 100);
         for (int i = 0; i < iters; i++) {
             moveDefined(reach, 0);
         }
-        cords = getPosition();
+        position = getPosition();
         assertTrue("Ship x should be near the edge of the system",
-                Math.abs(xMax - cords[0]) <= 1);
+                Math.abs(max.first - position.first) <= 1);
 
-        iters = (yMax / reach) + 1;
+        iters = (max.second / reach) + 1;
         for (int i = 0; i < iters; i++) {
             moveDefined(0, reach);
         }
-        cords = getPosition();
+        position = getPosition();
         assertTrue("Ship y should be near the edge of the system",
-                Math.abs(yMax - cords[1]) <= 1);
+                Math.abs(max.second - position.second) <= 1);
         removeTestValues();
     }
 
@@ -102,7 +103,7 @@ public class TestMove extends TestCase {
     public void cannotMoveOnTopOfOther() throws SQLException {
         createTestValues();
         moveDefined(moveStepSize, moveStepSize);
-        int tmp = shipID;
+        int tmpID = shipID;
         shipID = -1;
         PreparedStatement ps = conn.prepareStatement(createTmpShip);
         ps.setInt(1, shipID);
@@ -111,7 +112,7 @@ public class TestMove extends TestCase {
         ps = conn.prepareStatement(deleteTmpShip);
         ps.setInt(1, shipID);
         ps.execute();
-        shipID = tmp;
+        shipID = tmpID;
         removeTestValues();
     }
 
@@ -135,19 +136,18 @@ public class TestMove extends TestCase {
      * @return An integer array holding the position of the ship
      * @throws SQLException
      */
-    private int[] getPosition() throws SQLException {
+    private Pair<Integer, Integer> getPosition() throws SQLException {
         PreparedStatement ps = conn.prepareStatement(getShipPosition);
         ps.setInt(1, shipID);
         ResultSet rs = ps.executeQuery();
-        int[] cords = new int[2];
+        Pair<Integer, Integer> position;
         try {
             assertTrue("Query should return something", rs.next());
-            cords[0] = rs.getInt(1);
-            cords[1] = rs.getInt(2);
+            position = new Pair<Integer, Integer>(rs.getInt(1), rs.getInt(2));
         } finally {
             rs.close();
         }
-        return cords;
+        return position;
     }
 
     /**
@@ -160,16 +160,16 @@ public class TestMove extends TestCase {
         PreparedStatement ps = conn.prepareStatement(getShipPositionAndReach);
         ps.setInt(1, shipID);
         ResultSet rs = ps.executeQuery();
-        int[] cords = new int[3];
+        int[] positionAndReach = new int[3];
         try {
             assertTrue("Query should return something", rs.next());
-            cords[0] = rs.getInt(1);
-            cords[1] = rs.getInt(2);
-            cords[2] = rs.getInt(3);
+            positionAndReach[0] = rs.getInt(1);
+            positionAndReach[1] = rs.getInt(2);
+            positionAndReach[2] = rs.getInt(3);
         } finally {
             rs.close();
         }
-        return cords;
+        return positionAndReach;
     }
 
     /**
@@ -183,16 +183,16 @@ public class TestMove extends TestCase {
         PreparedStatement ps = conn.prepareStatement(getSystemMaxAndReachability);
         ps.setInt(1, shipID);
         ResultSet rs = ps.executeQuery();
-        int[] info = new int[3];
+        int[] maxAndReach = new int[3];
         try {
             assertTrue("Query should return something", rs.next());
-            info[0] = rs.getInt(1);
-            info[1] = rs.getInt(2);
-            info[2] = rs.getInt(3);
+            maxAndReach[0] = rs.getInt(1);
+            maxAndReach[1] = rs.getInt(2);
+            maxAndReach[2] = rs.getInt(3);
         } finally {
             rs.close();
         }
-        return info;
+        return maxAndReach;
     }
 
     /**
@@ -202,17 +202,17 @@ public class TestMove extends TestCase {
     public void manyMoves() throws SQLException {
         createTestValues();
         int numMoves = 100;
-        int[] posBefore = getPosition();
+        Pair<Integer, Integer> posBefore = getPosition();
         for (int i = 0; i < numMoves; i++) {
             moveDefined(moveStepSize, moveStepSize);
         }
-        int[] posAfter = getPosition();
+        Pair<Integer, Integer> posAfter = getPosition();
         assertTrue("Should have moved " + numMoves + " positions",
-                Math.abs(posBefore[0] + (moveStepSize * numMoves)
-                        - posAfter[0]) <= numMoves);
+                Math.abs(posBefore.first + (moveStepSize * numMoves)
+                        - posAfter.first) <= numMoves);
         assertTrue("Should have moved " + numMoves + " positions",
-                Math.abs(posBefore[1] + (moveStepSize * numMoves)
-                        - posAfter[1]) <= numMoves);
+                Math.abs(posBefore.second + (moveStepSize * numMoves)
+                        - posAfter.second) <= numMoves);
         removeTestValues();
     }
 
@@ -267,16 +267,16 @@ public class TestMove extends TestCase {
      */
     public void oneMove() throws SQLException {
         createTestValues();
-        int[] cords = getPosition();
-        int newX = cords[0] + moveStepSize;
-        int newY = cords[1] + moveStepSize;
+        Pair<Integer, Integer> position = getPosition();
+        int newX = position.first + moveStepSize;
+        int newY = position.second + moveStepSize;
         assertEquals("Move should be successfull", Move.MOVE_SUCCESSFUL,
                 moveProc.run(this.conn, shipID, moveStepSize, moveStepSize, rng));
-        cords = getPosition();
+        position = getPosition();
         assertTrue("X should be near new position",
-                Math.abs(newX - cords[0]) <= 1);
+                Math.abs(newX - position.first) <= 1);
         assertTrue("Y should be near new position",
-                Math.abs(newY - cords[1]) <= 1);
+                Math.abs(newY - position.first) <= 1);
         removeTestValues();
     }
 
@@ -321,16 +321,16 @@ public class TestMove extends TestCase {
      */
     public void withinReachability() throws SQLException {
         createTestValues();
-        int[] cords = getPositionAndReach();
-        int x = cords[0];
-        int y = cords[1];
-        int reach = cords[2];
+        int[] positionAndReach = getPositionAndReach();
+        Pair<Integer, Integer> positionOld = new Pair<Integer, Integer>
+                (positionAndReach[0], positionAndReach[1]);
+        int reach = positionAndReach[2];
         moveDefined(reach * 2, reach * 2);
-        cords = getPosition();
+        Pair<Integer, Integer> position = getPosition();
         assertTrue("X should be within reach",
-                Math.abs(x + reach - cords[0]) <= 1);
+                Math.abs(positionOld.first + reach - position.first) <= 1);
         assertTrue("Y should be within reach",
-                Math.abs(y + reach - cords[1]) <= 1);
+                Math.abs(positionOld.first + reach - position.first) <= 1);
         removeTestValues();
     }
 
