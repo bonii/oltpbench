@@ -64,6 +64,11 @@ CREATE TABLE fitting
 -- fittings table hold the links between ships and fittings
 CREATE TABLE fittings
 (
+  fittings_id integer NOT NULL,
   ship_id     integer NOT NULL REFERENCES ships (ship_id),
   fitting_id  integer NOT NULL REFERENCES fitting (fitting_id),
+  PRIMARY KEY
+  (
+    fittings_id
+  )
 );
