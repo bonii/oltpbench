@@ -25,7 +25,7 @@ public class Move extends Procedure {
 
     // Check single tile if free
     public final SQLStmt checkTileStmt = new SQLStmt(
-        "SELECT position_x, poasition_y FROM " + GalaxyConstants.TABLENAME_SHIPS +
+        "SELECT position_x, position_y FROM " + GalaxyConstants.TABLENAME_SHIPS +
         " WHERE position_x BETWEEN ?-1 AND ?+1 AND position_y BETWEEN ?-1 AND ?+1 AND " +
         "solar_system_id = ? AND ship_id != ?;"
     );
