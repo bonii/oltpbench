@@ -25,28 +25,30 @@ public class Move extends Procedure {
 
     // Check single tile if free
     public final SQLStmt checkTileStmt = new SQLStmt(
-        "SELECT x, y FROM " + GalaxyConstants.TABLENAME_SHIPS +
-        " WHERE x BETWEEN ?-1 AND ?+1 AND y BETWEEN ?-1 AND ?+1 AND ssid = ?" +
-        " AND sid != ?;"
+        "SELECT position_x, poasition_y FROM " + GalaxyConstants.TABLENAME_SHIPS +
+        " WHERE position_x BETWEEN ?-1 AND ?+1 AND position_y BETWEEN ?-1 AND ?+1 AND " +
+        "solar_system_id = ? AND ship_id != ?;"
     );
 
     // Get ship, class and solarsystem information
     public final SQLStmt getShipInfo = new SQLStmt(
-            "SELECT x, y, reachability, " +
-            GalaxyConstants.TABLENAME_SHIPS + ".ssid, x_max, y_max FROM " +
+            "SELECT position_x, position_y, reachability, " +
+            GalaxyConstants.TABLENAME_SHIPS + ".solar_system_id, " +
+            "max_position_x, max_position_y FROM " +
             GalaxyConstants.TABLENAME_SHIPS + " JOIN " +
             GalaxyConstants.TABLENAME_CLASSES + " ON " +
-            GalaxyConstants.TABLENAME_SHIPS + ".class = " +
-            GalaxyConstants.TABLENAME_CLASSES + ".cid JOIN " +
+            GalaxyConstants.TABLENAME_SHIPS + ".class_id = " +
+            GalaxyConstants.TABLENAME_CLASSES + ".class_id JOIN " +
             GalaxyConstants.TABLENAME_SOLARSYSTEMS + " ON " +
-            GalaxyConstants.TABLENAME_SHIPS + ".ssid = " +
-            GalaxyConstants.TABLENAME_SOLARSYSTEMS + ".ssid WHERE sid = ?;"
+            GalaxyConstants.TABLENAME_SHIPS + ".solar_system_id = " +
+            GalaxyConstants.TABLENAME_SOLARSYSTEMS + ".solar_system_id " +
+            "WHERE ship_id = ?;"
             );
 
     // Update ship position
     public final SQLStmt updateShipPosStmt = new SQLStmt(
         "UPDATE " + GalaxyConstants.TABLENAME_SHIPS +
-        " SET x = ?, y = ? WHERE sid = ?;"
+        " SET position_x = ?, position_y = ? WHERE ship_id = ?;"
     );
 
     /**
@@ -112,8 +114,8 @@ public class Move extends Procedure {
                 (Math.max(0, newPosition.first - 1), 
                  Math.max(0, newPosition.second));
         Pair<Integer, Integer> max = new Pair<Integer, Integer>
-                (Math.min(systemMax.first, systemMax.first + 1), 
-                 Math.min(systemMax.second, systemMax.second + 1));
+                (Math.min(systemMax.first, newPosition.first + 1), 
+                 Math.min(systemMax.second, newPosition.second + 1));
         for (int i = min.first; i <= max.first; i++) {
             for (int j = min.second; j <= max.second; j++) {
                 possibles.add(new Pair<Integer, Integer>(i,j));

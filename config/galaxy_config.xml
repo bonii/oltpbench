@@ -12,10 +12,10 @@
     <scalefactor>10</scalefactor>
 
     <!-- The workload -->
-    <terminals>1</terminals>
+    <terminals>10</terminals>
     <works>
         <work>
-          <time>0</time>
+          <time>10</time>
           <rate>1</rate>
           <weights>1</weights>
           <serial>true</serial>
