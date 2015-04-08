@@ -34,38 +34,45 @@ package com.oltpbenchmark.benchmarks.galaxy;
  */
 public abstract class GalaxyConstants {
 
-  public static final int MAX_FITTING_VALUE = 1000; 
-  public static final int MAX_MOVE = 110000;
+    // Ships
+    public static final int NUM_SHIPS = 100;
     
-  public static final int NUM_CLASSES = 5;
-  public static final int NUM_SOLARSYSTEMS = 6;
-  public static final int NUM_SHIPS = 1000;
-  public static final int NUM_FITTING = 50;
+    // Solar systems
+    public static final long AU = 149600000000L; // According to wolfram
+    public static final int MIN_SYSTEM_SIZE = 10;// TODO * AU;
+    public static final int MAX_SYSTEM_SIZE = 100;// TODO * AU;
+    public static final int MIN_SECURITY = -10;
+    public static final int MAX_SECURITY = 10;
+    public static final int NUM_SOLAR_SYSTEMS = 1;
+    
+    // Classes
+    public static final int NUM_CLASSES = 5;
+    public static final int MIN_REACHABILITY = 100;
+    public static final int MAX_REACHABILITY = 1000;
+    public static final int MIN_HEALTH = 1000;
+    public static final int MAX_HEALTH = 100000;
+    public static final int MIN_FITTINGS = 1;
+    public static final int MAX_FITTINGS = 10;
+    // TODO random names maybe?
+    public static final String[] classes = new String[] {
+        "Missile boat", "Torpedo boat", "Minesweeper", 
+        "Medium landing craft", "Landing Ship Tank" };
+    
+    // Fittings
+    public static final int NUM_FITTING = 50;
+    public static final int NUM_FITTING_TYPES = 2;
+    public static final int FITTING_TYPE_OFFENSIVE = 0;
+    public static final int FITTING_TYPE_DEFENSIVE = 1;
+    public static final int MAX_FITTING_VALUE = 1000;
 
-  public static final String TABLENAME_SHIPS = "ships";
-  public static final String TABLENAME_CLASSES = "classes";
-  public static final String TABLENAME_SOLARSYSTEMS = "solar_systems";
-  public static final String TABLENAME_FITTING = "fitting";
-  public static final String TABLENAME_FITTINGS = "fittings";
-
-  // Initialize some common constants and variables
-  public static final String CLASSES_CSV = "Missile boat, Torpedo boat, Minesweeper," +
-      "Medium landing craft, Landing Ship Tank";
-
-
-  // Ship classes data
-  public static final String[] classes = new String[] {
-    "Missile boat", "Torpedo boat", "Minesweeper", "Medium landing craft", "Landing Ship Tank" };
-  public static final int[] reachability = {200, 450, 900, 3000, 1200};
-  public static final int[] healths = {100, 225, 450, 1500, 600};
-  public static final int[] fittings = {1, 2, 4, 15, 6};
-
-  // Solarsystem size data
-  public static final int[] x_max = {100000, 20000, 35000, 10000, 88000, 50000};
-  public static final int[] y_max = {100000, 15000, 15000, 80000, 20000, 40000};
-  public static final int[] securities = {10, 0, 6, 1, 4, 2};
-  
-  // TODO Fitting data
-  // TODO Fittings data
+    // Runtime variables
+    public static final int MAX_MOVE = 110000; 
+    
+    // Table names
+    public static final String TABLENAME_SHIPS = "ships";
+    public static final String TABLENAME_CLASSES = "classes";
+    public static final String TABLENAME_SOLARSYSTEMS = "solar_systems";
+    public static final String TABLENAME_FITTING = "fitting";
+    public static final String TABLENAME_FITTINGS = "fittings";
 
 }
