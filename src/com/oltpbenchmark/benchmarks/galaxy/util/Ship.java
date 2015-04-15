@@ -11,14 +11,16 @@ public class Ship {
     protected final int damage;
     protected final int defence;
 
-    public Ship(int shipId, int healthPoints) {
+    public Ship(int shipId, int healthPoints, int damage, int defence) {
         this.shipId = shipId;
         this.healthPoints = healthPoints;
-    }
-
-    public void setDamageDefence(int damage, int defence) {
         this.damage = damage;
         this.defence = defence;
     }
+
+    /*public void setDamageDefence(int damage, int defence) {
+        this.damage = damage;
+        this.defence = defence;
+    }*/
 
 }

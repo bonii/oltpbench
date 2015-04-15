@@ -25,15 +25,34 @@ public class Combat extends Procedure {
     public static final long ERR_INVALID_SHIP = 2;
 
     // Get all ships within a range in a specified solarsystem
-    public final SQLStmt queueRangeShips = new SQLStmt(
+    /*public final SQLStmt queueRangeShips = new SQLStmt(
         "SELECT ship_id, health_points FROM " + GalaxyConstants.TABLENAME_SHIPS +
         " WHERE position_x BETWEEN ? AND ? AND position_y BETWEEN ? AND ? AND " +
         "solar_system_id = ?;"
-    );
+    );*/
 
-    public final SQLStmt getShipFittings = new SQLStmt(
+    /*public final SQLStmt getShipFittings = new SQLStmt(
         "SELECT SUM(fitting_value) FROM " + GalaxyConstants.TABLENAME_FITTINGS +
         " WHERE ship_id = ? AND fitting_type = ?;"
+    );*/
+    
+    public final SQLStmt queryShipsInRange = new SQLStmt(
+        "SELECT ships.ship_id, health_points, " + 
+        "SUM(CASE WHEN fitting_type = " + GalaxyConstants.FITTING_TYPE_OFFENSIVE +
+        " THEN fitting_value ELSE 0 END) as offensive," + 
+        "SUM(CASE WHEN fitting_type = " + GalaxyConstants.FITTING_TYPE_DEFENSIVE + 
+        " THEN fitting_value ELSE 0 END) as defensive " +
+        "FROM " + GalaxyConstants.TABLENAME_SHIPS + " " +
+        "JOIN " + GalaxyConstants.TABLENAME_FITTINGS + " " +
+        "ON " + GalaxyConstants.TABLENAME_SHIPS + ".ship_id " +
+        "= " + GalaxyConstants.TABLENAME_FITTINGS + ".ship_id " +
+        "JOIN " + GalaxyConstants.TABLENAME_FITTING + " " + 
+        "ON " + GalaxyConstants.TABLENAME_FITTINGS + ".fitting_id " +
+        "= " + GalaxyConstants.TABLENAME_FITTING + ".fitting_id " + 
+        "WHERE position_x BETWEEN ? AND ? " + 
+        "AND position_y BETWEEN ? AND ? " +
+        "AND solar_system_id = ? " +
+        "GROUP BY " + GalaxyConstants.TABLENAME_SHIPS + ".ship_id;"
     );
 
     /**
@@ -44,35 +63,40 @@ public class Combat extends Procedure {
     public long run(Connection conn, int solarSystemId, Pair<Integer, Integer> minPos,
         Pair<Integer, Integer> maxPos, Random rng) throws SQLException {
         ArrayList<Ship> ships = getShipInformation(conn, solarSystemId, minPos, maxPos);
-        ships = getShipDamageDefence(conn, ships);
+        //ships = getShipDamageDefence(conn, ships);
 
         for (int i = 0; i < ships.size(); i++) {
             if (i % 2 == 0) {
+            }
         }
 
-        return COMBAT_SUCCESSFUL
+        return COMBAT_SUCCESSFUL;
     }
 
-    private ArrayList<Ship> getShipInformation(conn, solarSystemId, Pair<Integer, Integer> minPos,
+    private ArrayList<Ship> getShipInformation(Connection conn, int solarSystemId, Pair<Integer, Integer> minPos,
         Pair<Integer, Integer> maxPos) throws SQLException {
         // Get ship information
-        PreparedStatement ps = getPreparedStatement(conn, queueRangeShips);
+        PreparedStatement ps = getPreparedStatement(conn, queryShipsInRange);
         ps.setInt(1, minPos.first);
         ps.setInt(2, minPos.second);
         ps.setInt(3, maxPos.first);
         ps.setInt(4, maxPos.second);
         ps.setInt(5, solarSystemId);
         ResultSet rs = ps.executeQuery();
-        ArrayList<Ship> ships = new ArrayList<Ship>;
+        ArrayList<Ship> ships = new ArrayList<Ship>();
         int shipId;
         int healthPoints;
+        int damage;
+        int defence;
         try {
             if (!rs.next()) {
                 throw new SQLException();
             } else {
                 shipId = rs.getInt(1);
                 healthPoints = rs.getInt(2);
-                ships.add(new Ship(shipId, healthPoints);
+                damage = rs.getInt(3);
+                defence = rs.getInt(4);
+                ships.add(new Ship(shipId, healthPoints, damage, defence));
             }
         } finally {
             rs.close();
@@ -80,7 +104,7 @@ public class Combat extends Procedure {
         return ships;
     }
 
-    private ArrayList<Ship> getShipDamageDefence(conn, ArrayList<Ship>) throws SQLException {
+    /*private ArrayList<Ship> getShipDamageDefence(conn, ArrayList<Ship>) throws SQLException {
         int tempDamage;
         int tempDefence;
         ResultSet rs;
@@ -112,6 +136,6 @@ public class Combat extends Procedure {
             ship.setDamageDefence(tempDamage, tempDefence);
         }
         return ships;
-    }
+    }*/
 
 }
