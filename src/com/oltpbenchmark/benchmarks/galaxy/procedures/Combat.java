@@ -24,18 +24,14 @@ public class Combat extends Procedure {
     public static final long COMBAT_NOT_SUCCESSFUL = 1;
     public static final long ERR_INVALID_SHIP = 2;
 
-    // Get all ships within a range in a specified solarsystem
-    /*public final SQLStmt queueRangeShips = new SQLStmt(
-        "SELECT ship_id, health_points FROM " + GalaxyConstants.TABLENAME_SHIPS +
-        " WHERE position_x BETWEEN ? AND ? AND position_y BETWEEN ? AND ? AND " +
-        "solar_system_id = ?;"
-    );*/
-
-    /*public final SQLStmt getShipFittings = new SQLStmt(
-        "SELECT SUM(fitting_value) FROM " + GalaxyConstants.TABLENAME_FITTINGS +
-        " WHERE ship_id = ? AND fitting_type = ?;"
-    );*/
+    public final SQLStmt deleteShipAndFittings = new SQLStmt(
+        "DELETE FROM " + GalaxyConstants.TABLENAME_FITTINGS + " " +
+        "WHERE ship_id = ?;" +
+        "DELETE FROM " + GalaxyConstants.TABLENAME_SHIPS + " " +
+        "WHERE ship_id = ?;"
+    );
     
+    // Get all ships within a range in a specified solar system    
     public final SQLStmt queryShipsInRange = new SQLStmt(
         "SELECT ships.ship_id, health_points, " + 
         "SUM(CASE WHEN fitting_type = " + GalaxyConstants.FITTING_TYPE_OFFENSIVE +
@@ -54,6 +50,11 @@ public class Combat extends Procedure {
         "AND solar_system_id = ? " +
         "GROUP BY " + GalaxyConstants.TABLENAME_SHIPS + ".ship_id;"
     );
+    
+    public final SQLStmt updateShip = new SQLStmt(
+        "UPDATE " + GalaxyConstants.TABLENAME_SHIPS + " " +
+        "SET health_points = ? WHERE ship_id = ?;"
+    );
 
     /**
      * Runs the combat procedure.
@@ -63,14 +64,45 @@ public class Combat extends Procedure {
     public long run(Connection conn, int solarSystemId, Pair<Integer, Integer> minPos,
         Pair<Integer, Integer> maxPos, Random rng) throws SQLException {
         ArrayList<Ship> ships = getShipInformation(conn, solarSystemId, minPos, maxPos);
-        //ships = getShipDamageDefence(conn, ships);
-
+        Pair<Integer, Integer> groupDmgs = getGroupDmgs(ships);
+        divideDmgs(ships, groupDmgs);
+        updateShips(conn, ships);
+        return COMBAT_SUCCESSFUL;
+    }
+    
+    private void divideDmgs(ArrayList<Ship> ships, Pair<Integer, Integer> groupDmgs) {
+        int group1Avg = 0;
+        int group2Avg = 0;
+        if (ships.size() % 2 == 0) {
+            group1Avg = groupDmgs.first / ships.size();
+            group2Avg = groupDmgs.second / ships.size();
+        } else { // TODO handle uneven groupsizes ?
+            group1Avg = groupDmgs.first / ships.size();
+            group2Avg = groupDmgs.second / ships.size();
+        }
+        
         for (int i = 0; i < ships.size(); i++) {
+            Ship ship = ships.get(i);
             if (i % 2 == 0) {
+                ship.healthPoints -= group2Avg - ship.defence; 
+            } else {
+                ship.healthPoints -= group1Avg - ship.defence;
             }
         }
-
-        return COMBAT_SUCCESSFUL;
+    }
+    
+    // TODO make avgs
+    private Pair<Integer, Integer> getGroupDmgs(ArrayList<Ship> ships) {
+        int group1Dmg = 0;
+        int group2Dmg = 0;
+        for (int i = 0; i < ships.size(); i++) {
+            if (i % 2 == 0) {
+                group1Dmg += ships.get(i).damage;
+            } else {
+                group2Dmg += ships.get(i).damage;
+            }
+        }
+        return new Pair<Integer, Integer>(group1Dmg, group2Dmg);
     }
 
     private ArrayList<Ship> getShipInformation(Connection conn, int solarSystemId, Pair<Integer, Integer> minPos,
@@ -103,39 +135,25 @@ public class Combat extends Procedure {
         }
         return ships;
     }
-
-    /*private ArrayList<Ship> getShipDamageDefence(conn, ArrayList<Ship>) throws SQLException {
-        int tempDamage;
-        int tempDefence;
-        ResultSet rs;
-        for (Ship ship : ships) {
-            ps = getPreparedStatement(conn, getShipFittings);
-            ps.setInt(1, ship.shipId);
-            ps.setInt(2, GalaxyConstants.FITTING_TYPE_OFFENSIVE);
-            rs = ps.executeQuery();
-            try {
-                if (!rs.next()) {
-                    throw new SQLException();
-                } else {
-                    tempDamage = rs.getInt(1);
-                }
-            } finally {
-                rs.close();
+    
+    private void updateShips(Connection conn, ArrayList<Ship> ships) 
+            throws SQLException {
+        PreparedStatement shipUpdates = getPreparedStatement(conn, updateShip);
+        PreparedStatement shipDeletes = getPreparedStatement(conn, deleteShipAndFittings);
+        for (int i = 0; i < ships.size(); i++) {
+            Ship ship = ships.get(i);
+            if (ship.healthPoints <= 0) {
+                shipDeletes.setInt(1, ship.shipId);
+                shipDeletes.setInt(2, ship.shipId);
+                shipDeletes.addBatch();
+            } else {
+                shipUpdates.setInt(1, ship.healthPoints);
+                shipUpdates.setInt(2, ship.shipId);
+                shipUpdates.addBatch();
             }
-            ps.setInt(2, GalaxyConstants.FITTING_TYPE_DEFENSIVE);
-            rs = ps.executeQuery();
-            try {
-                if (!rs.next()) {
-                    throw new SQLException();
-                } else {
-                    tempDefence = rs.getInt(2);
-                }
-            } finally {
-              rs.close();
-            }
-            ship.setDamageDefence(tempDamage, tempDefence);
         }
-        return ships;
-    }*/
+        shipUpdates.executeBatch();
+        shipDeletes.executeBatch();
+    }
 
 }

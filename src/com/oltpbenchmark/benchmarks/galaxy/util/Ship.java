@@ -5,11 +5,11 @@ import java.util.ArrayList;
 import com.oltpbenchmark.util.Pair;
 
 public class Ship {
-    protected final int shipId;
-    protected final int healthPoints;
+    public final int shipId;
+    public int healthPoints;
 
-    protected final int damage;
-    protected final int defence;
+    public final int damage;
+    public final int defence;
 
     public Ship(int shipId, int healthPoints, int damage, int defence) {
         this.shipId = shipId;
