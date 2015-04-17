@@ -24,9 +24,12 @@ public class Combat extends Procedure {
     public static final long COMBAT_NOT_SUCCESSFUL = 1;
     public static final long ERR_INVALID_SHIP = 2;
 
-    public final SQLStmt deleteShipAndFittings = new SQLStmt(
+    public final SQLStmt deleteFittings = new SQLStmt(
         "DELETE FROM " + GalaxyConstants.TABLENAME_FITTINGS + " " +
-        "WHERE ship_id = ?;" +
+        "WHERE ship_id = ?;"
+    );
+    
+    public final SQLStmt deleteShip = new SQLStmt(
         "DELETE FROM " + GalaxyConstants.TABLENAME_SHIPS + " " +
         "WHERE ship_id = ?;"
     );
@@ -73,14 +76,10 @@ public class Combat extends Procedure {
     private void divideDmgs(ArrayList<Ship> ships, Pair<Integer, Integer> groupDmgs) {
         int group1Avg = 0;
         int group2Avg = 0;
-        if (ships.size() % 2 == 0) {
-            group1Avg = groupDmgs.first / ships.size();
-            group2Avg = groupDmgs.second / ships.size();
-        } else { // TODO handle uneven groupsizes ?
-            group1Avg = groupDmgs.first / ships.size();
-            group2Avg = groupDmgs.second / ships.size();
-        }
-        
+        int groupSize = ships.size() / 2;
+        // Group one will always be larger than, or equal to group two
+        group1Avg = groupDmgs.first / (groupSize + (ships.size() % 2));
+        group2Avg = groupDmgs.second / groupSize;
         for (int i = 0; i < ships.size(); i++) {
             Ship ship = ships.get(i);
             if (i % 2 == 0) {
@@ -110,8 +109,8 @@ public class Combat extends Procedure {
         // Get ship information
         PreparedStatement ps = getPreparedStatement(conn, queryShipsInRange);
         ps.setInt(1, minPos.first);
-        ps.setInt(2, minPos.second);
-        ps.setInt(3, maxPos.first);
+        ps.setInt(2, maxPos.first);
+        ps.setInt(3, minPos.second);
         ps.setInt(4, maxPos.second);
         ps.setInt(5, solarSystemId);
         ResultSet rs = ps.executeQuery();
@@ -121,9 +120,7 @@ public class Combat extends Procedure {
         int damage;
         int defence;
         try {
-            if (!rs.next()) {
-                throw new SQLException();
-            } else {
+            while (rs.next()) {
                 shipId = rs.getInt(1);
                 healthPoints = rs.getInt(2);
                 damage = rs.getInt(3);
@@ -139,13 +136,15 @@ public class Combat extends Procedure {
     private void updateShips(Connection conn, ArrayList<Ship> ships) 
             throws SQLException {
         PreparedStatement shipUpdates = getPreparedStatement(conn, updateShip);
-        PreparedStatement shipDeletes = getPreparedStatement(conn, deleteShipAndFittings);
+        PreparedStatement shipDeletes = getPreparedStatement(conn, deleteShip);
+        PreparedStatement fittingsDeletes = getPreparedStatement(conn, deleteFittings);
         for (int i = 0; i < ships.size(); i++) {
             Ship ship = ships.get(i);
             if (ship.healthPoints <= 0) {
                 shipDeletes.setInt(1, ship.shipId);
-                shipDeletes.setInt(2, ship.shipId);
                 shipDeletes.addBatch();
+                fittingsDeletes.setInt(1, ship.shipId);
+                fittingsDeletes.addBatch();
             } else {
                 shipUpdates.setInt(1, ship.healthPoints);
                 shipUpdates.setInt(2, ship.shipId);
@@ -153,6 +152,7 @@ public class Combat extends Procedure {
             }
         }
         shipUpdates.executeBatch();
+        fittingsDeletes.executeBatch();
         shipDeletes.executeBatch();
     }
 

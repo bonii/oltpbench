@@ -6,8 +6,10 @@ import java.util.Random;
 import com.oltpbenchmark.api.Procedure.UserAbortException;
 import com.oltpbenchmark.api.TransactionType;
 import com.oltpbenchmark.api.Worker;
+import com.oltpbenchmark.benchmarks.galaxy.procedures.Combat;
 import com.oltpbenchmark.benchmarks.galaxy.procedures.Move;
 import com.oltpbenchmark.types.TransactionStatus;
+import com.oltpbenchmark.util.Pair;
 
 /**
  * A class, which handles the work a worker needs to do
@@ -25,7 +27,12 @@ public class GalaxyWorker extends Worker {
 
     @Override
     protected TransactionStatus executeWork(TransactionType txnType) throws UserAbortException, SQLException {
-        Move proc = getProcedure(Move.class);
+        Combat proc = getProcedure(Combat.class);
+        Random rng = new Random();
+        proc.run(conn, 5, new Pair<Integer, Integer>(0, 0), new Pair<Integer, Integer>(50, 50), rng);
+        conn.commit();
+        return TransactionStatus.SUCCESS;
+        /*Move proc = getProcedure(Move.class);
         assert (proc != null);
         Random rng = new Random();
 
@@ -35,7 +42,7 @@ public class GalaxyWorker extends Worker {
         int move_y = rng.nextInt(GalaxyConstants.MAX_MOVE * 2) - GalaxyConstants.MAX_MOVE;
         proc.run(conn, ship_id, move_x, move_y, rng);
         conn.commit();
-        return TransactionStatus.SUCCESS;
+        return TransactionStatus.SUCCESS;*/
     }
 
 }
