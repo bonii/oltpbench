@@ -83,9 +83,9 @@ public class Combat extends Procedure {
         for (int i = 0; i < ships.size(); i++) {
             Ship ship = ships.get(i);
             if (i % 2 == 0) {
-                ship.healthPoints -= group2Avg - ship.defence; 
+                ship.healthPoints -= Math.max(0, group2Avg - ship.defence); 
             } else {
-                ship.healthPoints -= group1Avg - ship.defence;
+                ship.healthPoints -= Math.max(0, group1Avg - ship.defence);
             }
         }
     }

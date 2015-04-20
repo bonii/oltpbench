@@ -29,7 +29,7 @@ public class GalaxyWorker extends Worker {
     protected TransactionStatus executeWork(TransactionType txnType) throws UserAbortException, SQLException {
         Combat proc = getProcedure(Combat.class);
         Random rng = new Random();
-        proc.run(conn, 5, new Pair<Integer, Integer>(0, 0), new Pair<Integer, Integer>(50, 50), rng);
+        proc.run(conn, 6, new Pair<Integer, Integer>(0, 0), new Pair<Integer, Integer>(50, 50), rng);
         conn.commit();
         return TransactionStatus.SUCCESS;
         /*Move proc = getProcedure(Move.class);
