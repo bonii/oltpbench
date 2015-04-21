@@ -115,17 +115,13 @@ public class Combat extends Procedure {
         ps.setInt(5, solarSystemId);
         ResultSet rs = ps.executeQuery();
         ArrayList<Ship> ships = new ArrayList<Ship>();
-        int shipId;
-        int healthPoints;
-        int damage;
-        int defence;
         try {
             while (rs.next()) {
-                shipId = rs.getInt(1);
-                healthPoints = rs.getInt(2);
-                damage = rs.getInt(3);
-                defence = rs.getInt(4);
-                ships.add(new Ship(shipId, healthPoints, damage, defence));
+                Ship ship = new Ship(rs.getInt(1)); // shipId
+                ship.healthPoints = rs.getInt(2);
+                ship.damage = rs.getInt(3);
+                ship.defence = rs.getInt(4);
+                ships.add(ship);
             }
         } finally {
             rs.close();
