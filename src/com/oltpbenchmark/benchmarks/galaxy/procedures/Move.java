@@ -48,9 +48,18 @@ public class Move extends Procedure {
         " SET position_x = ?, position_y = ? WHERE ship_id = ?;"
     );
     
+    /**
+     * Caps the move offset, to fit the ships reachability.
+     * Also ensures that the ships does not move outside the solar system
+     * 
+     * @param ship The ship that is moving
+     * @param moveOffset The offset that the ship is trying to move
+     */
     private void capToReachability(Ship ship, Pair<Integer, Integer> moveOffset) {
         int offsetX;
         int offsetY;
+        
+        // Cap to reachability
         if (moveOffset.first < 0) {
             offsetX = Math.max(moveOffset.first, -ship.reachability);
         } else {
@@ -61,38 +70,71 @@ public class Move extends Procedure {
         } else {
             offsetY = Math.min(moveOffset.second, ship.reachability);
         }
+        
+        // Check if the ship is beyond solar system borders
         ship.positionX = Math.max(Math.min(systemMax.first, ship.positionX + offsetX), 0);
         ship.positionY = Math.max(Math.min(systemMax.second, ship.positionY + offsetY), 0);
     }
     
+    /**
+     * Checks if there is another ship at a given position.
+     * 
+     * @param ship The ship that is trying to move (ie. will be excluded from 
+     *         search
+     * @param ships The other ships, in the same region
+     * @return True, if there is another ship at the given position
+     */
     private boolean isPositionTaken(Ship ship, ArrayList<Ship> ships) {
         for (Ship sh : ships) {
             if (sh.shipId == ship.shipId) continue;
             if (sh.positionX == ship.positionX && 
                     sh.positionY == ship.positionY &&
                     sh.positionZ == ship.positionZ) {
-                return true;
+                return true; // Position is taken
             }
         }
-        return false;
+        return false; // Position is free
     }
     
+    /**
+     * Generates a random move for each given ship, using the given random generator
+     * @param ships The ships, that will move
+     * @param rng The random generator that will be used
+     */
     private void generateMoves(ArrayList<Ship> ships, Random rng) {
         for (int i = 0; i < ships.size(); i++) {
             Ship ship = ships.get(i);
+            
+            // Generate offsets
             int offsetX = rng.nextInt();
             int offsetY = rng.nextInt();
-            offsetX *= (rng.nextBoolean()) ? -1 : 1; // should be minus?
-            offsetY *= (rng.nextBoolean()) ? -1 : 1; // should be minus?
+            
+            // Generate if they should be negative
+            offsetX *= (rng.nextBoolean()) ? -1 : 1;
+            offsetY *= (rng.nextBoolean()) ? -1 : 1;
+            
+            // Cap to reachability and check if position is free. Remove if not
             capToReachability(ship, new Pair<Integer, Integer>(offsetX, offsetY));
             if (isPositionTaken(ship, ships)) ships.remove(i--);
             // TODO Check if can move, if not, offset by 1 in random direction? 
         }
     }
     
+    /**
+     * Gets all the ships, that are present in between the given positions, 
+     * and is in the given solarsystem
+     * 
+     * @param conn The connection to the database
+     * @param solarSystemId The solar system the region is in
+     * @param minPos The start position of the region
+     * @param maxPos The end position of the region
+     * @return An ArrayList, containing all the ships found
+     * @throws SQLException
+     */
     private ArrayList<Ship> getShipsInformation(Connection conn, int solarSystemId, 
             Pair<Integer, Integer> minPos, 
             Pair<Integer, Integer> maxPos) throws SQLException {
+        // Prepare variables and statement
         ArrayList<Ship> ships = new ArrayList<Ship>();
         PreparedStatement ps = getPreparedStatement(conn, getShipsAndInformation);
         ps.setInt(1, minPos.first);
@@ -101,6 +143,8 @@ public class Move extends Procedure {
         ps.setInt(4, maxPos.second);
         ps.setInt(5, solarSystemId);
         ResultSet rs = ps.executeQuery();
+        
+         // Gather information about each ship, and save it in ships
         try {
             while (rs.next()) {
                 Ship ship = new Ship(rs.getInt(1)); // shipId
@@ -123,13 +167,14 @@ public class Move extends Procedure {
      * Runs the move procedure.
      * <br>
      * Starts by retrieving ship information, then it caps the movement to the
-     * ships reachability and finally makes a list of possible positions in
-     * the vicinity of the target position, and selects a random position from
-     * that list.
+     * ships reachability, then it checks if the position is occupied, and 
+     * finally it updates all the ships positions
+     * 
      * @param conn The connection to the database
-     * @param shipId The id of the ship to be moved
-     * @param move_x Relative x position to move
-     * @param move_y Relative y position to move
+     * @param solarSystemId The solar system, the region is in
+     * @param minPos The start position of the region
+     * @param maxPos The end position of the region
+     * @param rng The random generator that will be used
      * @return MOVE_SUCCESSFUL if the move was possible and
      * MOVE_NOT_SUCCESSFUL if not
      * @throws SQLException
@@ -140,10 +185,16 @@ public class Move extends Procedure {
         if (ships.size() == 0) return MOVE_NOT_SUCCESSFUL;
         generateMoves(ships, rng);
         updateShipInformation(conn, ships);
-        // Set the return value to 0: successful move
         return MOVE_SUCCESSFUL;
     }
     
+    /**
+     * Updates all the given ships informations in the database
+     * 
+     * @param conn The connection to the database
+     * @param ships The ships that will be updated
+     * @throws SQLException
+     */
     public void updateShipInformation(Connection conn, ArrayList<Ship> ships) throws SQLException {
         PreparedStatement ps = getPreparedStatement(conn, updateShipPos);
         for (Ship ship : ships) {
