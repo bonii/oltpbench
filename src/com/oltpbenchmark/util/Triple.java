@@ -18,8 +18,9 @@
 package com.oltpbenchmark.util;
 
 /**
- * Class representing a triple of generic-ized types. Supports equality, hashing
- * and all that other nice Java stuff. Based on the pair class in from oltpbench/util.
+ * Class representing a triple of generic-ized types. Supports equality,
+ * hashing and all that other nice Java stuff. Based on the pair class in from
+ * oltpbench/util.
  *
  */
 public class Triple<T, U, M> implements Comparable<Triple<T, U, M>> {
@@ -97,8 +98,8 @@ public class Triple<T, U, M> implements Comparable<Triple<T, U, M>> {
     }
 
     /**
-     * Convenience class method for constructing triples using Java's generic type
-     * inference.
+     * Convenience class method for constructing triples using Java's generic
+     * type inference.
      */
     public static <T, U, M> Triple<T, U, M> of(T x, U y, M z) {
         return new Triple<T, U, M>(x, y, z);
