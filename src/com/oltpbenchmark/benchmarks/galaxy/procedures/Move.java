@@ -22,7 +22,6 @@ public class Move extends Procedure {
     // Potential return codes
     public static final long MOVE_SUCCESSFUL = 0;
     public static final long MOVE_NOT_SUCCESSFUL = 1;
-    public static final long ERR_INVALID_SHIP = 2;
     
     // Solar system information
     private Pair<Integer, Integer> systemMax;
@@ -44,7 +43,7 @@ public class Move extends Procedure {
     );
 
     // Update ship position
-    public final SQLStmt updateShipPosStmt = new SQLStmt(
+    public final SQLStmt updateShipPos = new SQLStmt(
         "UPDATE " + GalaxyConstants.TABLENAME_SHIPS +
         " SET position_x = ?, position_y = ? WHERE ship_id = ?;"
     );
@@ -66,15 +65,33 @@ public class Move extends Procedure {
         ship.positionY = Math.max(Math.min(systemMax.second, ship.positionY + offsetY), 0);
     }
     
+    private boolean isPositionTaken(Ship ship, ArrayList<Ship> ships) {
+        for (Ship sh : ships) {
+            if (sh.shipId == ship.shipId) continue;
+            if (sh.positionX == ship.positionX && 
+                    sh.positionY == ship.positionY &&
+                    sh.positionZ == ship.positionZ) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
     private void generateMoves(ArrayList<Ship> ships, Random rng) {
-        //generate and capToReachability
-        for (Ship ship : ships) {
-            capToReachability(ship, new Pair<Integer, Integer>(rng.nextInt(), rng.nextInt()));
+        for (int i = 0; i < ships.size(); i++) {
+            Ship ship = ships.get(i);
+            int offsetX = rng.nextInt();
+            int offsetY = rng.nextInt();
+            offsetX *= (rng.nextBoolean()) ? -1 : 1; // should be minus?
+            offsetY *= (rng.nextBoolean()) ? -1 : 1; // should be minus?
+            capToReachability(ship, new Pair<Integer, Integer>(offsetX, offsetY));
+            if (isPositionTaken(ship, ships)) ships.remove(i--);
             // TODO Check if can move, if not, offset by 1 in random direction? 
         }
     }
     
-    private ArrayList<Ship> getShipsInformation(Connection conn, int solarSystemId, Pair<Integer, Integer> minPos, 
+    private ArrayList<Ship> getShipsInformation(Connection conn, int solarSystemId, 
+            Pair<Integer, Integer> minPos, 
             Pair<Integer, Integer> maxPos) throws SQLException {
         ArrayList<Ship> ships = new ArrayList<Ship>();
         PreparedStatement ps = getPreparedStatement(conn, getShipsAndInformation);
@@ -114,19 +131,28 @@ public class Move extends Procedure {
      * @param move_x Relative x position to move
      * @param move_y Relative y position to move
      * @return MOVE_SUCCESSFUL if the move was possible and
-     * MOVE_NOT_SUCCESSFUL if not and ERR_INVALID_SHIP if the ship didn't exist
+     * MOVE_NOT_SUCCESSFUL if not
      * @throws SQLException
      */
     public long run(Connection conn, int solarSystemId, Pair<Integer, Integer> minPos, 
             Pair<Integer, Integer> maxPos, Random rng) throws SQLException {
         ArrayList<Ship> ships = getShipsInformation(conn, solarSystemId, minPos, maxPos);
+        if (ships.size() == 0) return MOVE_NOT_SUCCESSFUL;
         generateMoves(ships, rng);
-        updateShipInformation(ships);
+        updateShipInformation(conn, ships);
         // Set the return value to 0: successful move
         return MOVE_SUCCESSFUL;
     }
     
-    public void updateShipInformation(ArrayList<Ship> ships) throws SQLException {
-        // TODO batch!
+    public void updateShipInformation(Connection conn, ArrayList<Ship> ships) throws SQLException {
+        PreparedStatement ps = getPreparedStatement(conn, updateShipPos);
+        for (Ship ship : ships) {
+            ps.setInt(1, ship.positionX);
+            ps.setInt(2, ship.positionY);
+            ps.setInt(3, ship.positionZ);
+            ps.setInt(4, ship.shipId);
+            ps.addBatch();
+        }
+        ps.executeBatch();
     }
 }

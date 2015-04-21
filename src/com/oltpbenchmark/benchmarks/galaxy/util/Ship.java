@@ -5,6 +5,7 @@ public class Ship {
     public final int shipId;
     
     // Move
+    // TODO triple!
     public int positionX;
     public int positionY;
     public int positionZ;

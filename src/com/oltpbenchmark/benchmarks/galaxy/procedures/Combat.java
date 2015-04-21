@@ -90,7 +90,7 @@ public class Combat extends Procedure {
         }
     }
     
-    // TODO make avgs
+    // TODO make avgs?
     private Pair<Integer, Integer> getGroupDmgs(ArrayList<Ship> ships) {
         int group1Dmg = 0;
         int group2Dmg = 0;
@@ -134,8 +134,7 @@ public class Combat extends Procedure {
         PreparedStatement shipUpdates = getPreparedStatement(conn, updateShip);
         PreparedStatement shipDeletes = getPreparedStatement(conn, deleteShip);
         PreparedStatement fittingsDeletes = getPreparedStatement(conn, deleteFittings);
-        for (int i = 0; i < ships.size(); i++) {
-            Ship ship = ships.get(i);
+        for (Ship ship : ships) {
             if (ship.healthPoints <= 0) {
                 shipDeletes.setInt(1, ship.shipId);
                 shipDeletes.addBatch();
