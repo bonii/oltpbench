@@ -25,6 +25,7 @@ CREATE TABLE solar_systems
   solar_system_id integer NOT NULL,
   max_position_x  integer NOT NULL,
   max_position_y  integer NOT NULL,
+  max_position_z  integer NOT NULL,
   security_level  integer NOT NULL,
   PRIMARY KEY
   (
@@ -38,6 +39,7 @@ CREATE TABLE ships
   ship_id         integer NOT NULL,
   position_x      integer NOT NULL,
   position_y      integer NOT NULL,
+  position_z	  integer NOT NULL,
   class_id        integer NOT NULL REFERENCES classes (class_id),
   solar_system_id integer NOT NULL REFERENCES solar_systems (solar_system_id),
   health_points   integer NOT NULL,
@@ -48,6 +50,7 @@ CREATE TABLE ships
 );
 CREATE INDEX idx_ships_x ON ships (position_x);
 CREATE INDEX idx_ships_y ON ships (position_y);
+CREATE INDEX idx_ships_y ON ships (position_z);
 
 -- fitting table holds information about a fitting
 CREATE TABLE fitting

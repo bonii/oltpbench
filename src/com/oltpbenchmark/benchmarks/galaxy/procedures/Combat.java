@@ -60,8 +60,19 @@ public class Combat extends Procedure {
     );
 
     /**
-     * Runs the combat procedure.
+     * Runs the Combat procedure
      * <br>
+     * Starts by collecting information about all the ships present in the
+     * region, then it divides the ships into two groups, and sum their damage,
+     * then it distributes the summed damage over the ships in the opposite 
+     * group, and finally, it updates the database with the new information
+     * 
+     * @param conn The connection to the database
+     * @param solarSystemId The solar system, the region is in
+     * @param minPos The start position of the region
+     * @param maxPos The end position of the region
+     * @param rng The random generator, that will be used
+     * @return COMBAT_SUCCESSFUL if the procedure was successful
      * @throws SQLException
      */
     public long run(Connection conn, int solarSystemId, Pair<Integer, Integer> minPos,
@@ -73,6 +84,12 @@ public class Combat extends Procedure {
         return COMBAT_SUCCESSFUL;
     }
     
+    /**
+     * Divides damages among the two groups of ships.
+     * 
+     * @param ships The ships that are engaged in this combat
+     * @param groupDmgs The two damage sums from both groups
+     */
     private void divideDmgs(ArrayList<Ship> ships, Pair<Integer, Integer> groupDmgs) {
         int group1Avg = 0;
         int group2Avg = 0;
@@ -90,7 +107,13 @@ public class Combat extends Procedure {
         }
     }
     
-    // TODO make avgs
+    // TODO make avgs?
+    /**
+     * Divides the ships into two groups, and sum their damage
+     * 
+     * @param ships The ships that are in the region
+     * @return A Pair, that contains the two damage sums
+     */
     private Pair<Integer, Integer> getGroupDmgs(ArrayList<Ship> ships) {
         int group1Dmg = 0;
         int group2Dmg = 0;
@@ -104,6 +127,16 @@ public class Combat extends Procedure {
         return new Pair<Integer, Integer>(group1Dmg, group2Dmg);
     }
 
+    /**
+     * Gets all the ships, and their information, that are in the region
+     * 
+     * @param conn The connection to the database
+     * @param solarSystemId The solar system, the region is in
+     * @param minPos The start position of the region
+     * @param maxPos The end position of the region
+     * @return An ArrayList containing all the ships in the region
+     * @throws SQLException
+     */
     private ArrayList<Ship> getShipInformation(Connection conn, int solarSystemId, Pair<Integer, Integer> minPos,
         Pair<Integer, Integer> maxPos) throws SQLException {
         // Get ship information
@@ -115,17 +148,13 @@ public class Combat extends Procedure {
         ps.setInt(5, solarSystemId);
         ResultSet rs = ps.executeQuery();
         ArrayList<Ship> ships = new ArrayList<Ship>();
-        int shipId;
-        int healthPoints;
-        int damage;
-        int defence;
         try {
             while (rs.next()) {
-                shipId = rs.getInt(1);
-                healthPoints = rs.getInt(2);
-                damage = rs.getInt(3);
-                defence = rs.getInt(4);
-                ships.add(new Ship(shipId, healthPoints, damage, defence));
+                Ship ship = new Ship(rs.getInt(1)); // shipId
+                ship.healthPoints = rs.getInt(2);
+                ship.damage = rs.getInt(3);
+                ship.defence = rs.getInt(4);
+                ships.add(ship);
             }
         } finally {
             rs.close();
@@ -133,13 +162,19 @@ public class Combat extends Procedure {
         return ships;
     }
     
+    /**
+     * Updates all the ships information, in the database
+     * 
+     * @param conn The connection to the database
+     * @param ships The ships that are in the region
+     * @throws SQLException
+     */
     private void updateShips(Connection conn, ArrayList<Ship> ships) 
             throws SQLException {
         PreparedStatement shipUpdates = getPreparedStatement(conn, updateShip);
         PreparedStatement shipDeletes = getPreparedStatement(conn, deleteShip);
         PreparedStatement fittingsDeletes = getPreparedStatement(conn, deleteFittings);
-        for (int i = 0; i < ships.size(); i++) {
-            Ship ship = ships.get(i);
+        for (Ship ship : ships) {
             if (ship.healthPoints <= 0) {
                 shipDeletes.setInt(1, ship.shipId);
                 shipDeletes.addBatch();

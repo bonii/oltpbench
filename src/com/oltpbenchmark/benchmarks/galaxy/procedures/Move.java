@@ -11,6 +11,7 @@ import java.lang.Math;
 import com.oltpbenchmark.api.Procedure;
 import com.oltpbenchmark.api.SQLStmt;
 import com.oltpbenchmark.benchmarks.galaxy.GalaxyConstants;
+import com.oltpbenchmark.benchmarks.galaxy.util.Ship;
 import com.oltpbenchmark.util.Pair;
 
 /**
@@ -21,146 +22,188 @@ public class Move extends Procedure {
     // Potential return codes
     public static final long MOVE_SUCCESSFUL = 0;
     public static final long MOVE_NOT_SUCCESSFUL = 1;
-    public static final long ERR_INVALID_SHIP = 2;
-
-    // Check single tile if free
-    public final SQLStmt checkTileStmt = new SQLStmt(
-        "SELECT position_x, position_y FROM " + GalaxyConstants.TABLENAME_SHIPS +
-        " WHERE position_x BETWEEN ?-1 AND ?+1 AND position_y BETWEEN ?-1 AND ?+1 AND " +
-        "solar_system_id = ? AND ship_id != ?;"
-    );
+    
+    // Solar system information
+    private Pair<Integer, Integer> systemMax;
 
     // Get ship, class and solarsystem information
-    public final SQLStmt getShipInfo = new SQLStmt(
-            "SELECT position_x, position_y, reachability, " +
-            GalaxyConstants.TABLENAME_SHIPS + ".solar_system_id, " +
-            "max_position_x, max_position_y FROM " +
-            GalaxyConstants.TABLENAME_SHIPS + " JOIN " +
-            GalaxyConstants.TABLENAME_CLASSES + " ON " +
-            GalaxyConstants.TABLENAME_SHIPS + ".class_id = " +
-            GalaxyConstants.TABLENAME_CLASSES + ".class_id JOIN " +
-            GalaxyConstants.TABLENAME_SOLARSYSTEMS + " ON " +
-            GalaxyConstants.TABLENAME_SHIPS + ".solar_system_id = " +
-            GalaxyConstants.TABLENAME_SOLARSYSTEMS + ".solar_system_id " +
-            "WHERE ship_id = ?;"
-            );
+    public final SQLStmt getShipsAndInformation = new SQLStmt(
+        "SELECT ship_id, position_x, position_y, position_z, reachability, " + 
+        "max_position_x, max_position_y, max_position_z FROM " + 
+        GalaxyConstants.TABLENAME_SHIPS + " JOIN " +
+        GalaxyConstants.TABLENAME_CLASSES + " ON " +
+        GalaxyConstants.TABLENAME_SHIPS + ".class_id = " +
+        GalaxyConstants.TABLENAME_CLASSES + ".class_id JOIN " +
+        GalaxyConstants.TABLENAME_SOLARSYSTEMS + " ON " + 
+        GalaxyConstants.TABLENAME_SHIPS + ".solar_system_id = " + 
+        GalaxyConstants.TABLENAME_SOLARSYSTEMS + ".solar_system_id " +
+        "WHERE position_x BETWEEN ? AND ? AND " + 
+        "position_y BETWEEN ? AND ? AND " +
+        "position_z BETWEEN ? AND ? AND solar_system_id = ?;"
+    );
 
     // Update ship position
-    public final SQLStmt updateShipPosStmt = new SQLStmt(
+    public final SQLStmt updateShipPos = new SQLStmt(
         "UPDATE " + GalaxyConstants.TABLENAME_SHIPS +
         " SET position_x = ?, position_y = ? WHERE ship_id = ?;"
     );
-
+    
     /**
-     * Runs the move procedure.
-     * <br>
-     * Starts by retrieving ship information, then it caps the movement to the
-     * ships reachability and finally makes a list of possible positions in
-     * the vicinity of the target position, and selects a random position from
-     * that list.
+     * Caps the move offset, to fit the ships reachability.
+     * Also ensures that the ships does not move outside the solar system
+     * 
+     * @param ship The ship that is moving
+     * @param moveOffset The offset that the ship is trying to move
+     */
+    private void capToReachability(Ship ship, Pair<Integer, Integer> moveOffset) {
+        int offsetX;
+        int offsetY;
+        
+        // Cap to reachability
+        if (moveOffset.first < 0) {
+            offsetX = Math.max(moveOffset.first, -ship.reachability);
+        } else {
+            offsetX = Math.min(moveOffset.first, ship.reachability);
+        }
+        if (moveOffset.second < 0) {
+            offsetY = Math.max(moveOffset.second, -ship.reachability);
+        } else {
+            offsetY = Math.min(moveOffset.second, ship.reachability);
+        }
+        
+        // Check if the ship is beyond solar system borders
+        ship.positionX = Math.max(Math.min(systemMax.first, ship.positionX + offsetX), 0);
+        ship.positionY = Math.max(Math.min(systemMax.second, ship.positionY + offsetY), 0);
+    }
+    
+    /**
+     * Checks if there is another ship at a given position.
+     * 
+     * @param ship The ship that is trying to move (ie. will be excluded from 
+     *         search
+     * @param ships The other ships, in the same region
+     * @return True, if there is another ship at the given position
+     */
+    private boolean isPositionTaken(Ship ship, ArrayList<Ship> ships) {
+        for (Ship sh : ships) {
+            if (sh.shipId == ship.shipId) continue;
+            if (sh.positionX == ship.positionX && 
+                    sh.positionY == ship.positionY &&
+                    sh.positionZ == ship.positionZ) {
+                return true; // Position is taken
+            }
+        }
+        return false; // Position is free
+    }
+    
+    /**
+     * Generates a random move for each given ship, using the given random generator
+     * @param ships The ships, that will move
+     * @param rng The random generator that will be used
+     */
+    private void generateMoves(ArrayList<Ship> ships, Random rng) {
+        for (int i = 0; i < ships.size(); i++) {
+            Ship ship = ships.get(i);
+            
+            // Generate offsets
+            int offsetX = rng.nextInt();
+            int offsetY = rng.nextInt();
+            
+            // Generate if they should be negative
+            offsetX *= (rng.nextBoolean()) ? -1 : 1;
+            offsetY *= (rng.nextBoolean()) ? -1 : 1;
+            
+            // Cap to reachability and check if position is free. Remove if not
+            capToReachability(ship, new Pair<Integer, Integer>(offsetX, offsetY));
+            if (isPositionTaken(ship, ships)) ships.remove(i--);
+            // TODO Check if can move, if not, offset by 1 in random direction? 
+        }
+    }
+    
+    /**
+     * Gets all the ships, that are present in between the given positions, 
+     * and is in the given solarsystem
+     * 
      * @param conn The connection to the database
-     * @param shipId The id of the ship to be moved
-     * @param move_x Relative x position to move
-     * @param move_y Relative y position to move
-     * @return MOVE_SUCCESSFUL if the move was possible and
-     * MOVE_NOT_SUCCESSFUL if not and ERR_INVALID_SHIP if the ship didn't exist
+     * @param solarSystemId The solar system the region is in
+     * @param minPos The start position of the region
+     * @param maxPos The end position of the region
+     * @return An ArrayList, containing all the ships found
      * @throws SQLException
      */
-    public long run(Connection conn, int shipId, int move_x, int move_y, Random rng)
-            throws SQLException {
-        // Get ship information
-        PreparedStatement ps = getPreparedStatement(conn, getShipInfo);
-        ps.setInt(1, shipId);
+    private ArrayList<Ship> getShipsInformation(Connection conn, int solarSystemId, 
+            Pair<Integer, Integer> minPos, 
+            Pair<Integer, Integer> maxPos) throws SQLException {
+        // Prepare variables and statement
+        ArrayList<Ship> ships = new ArrayList<Ship>();
+        PreparedStatement ps = getPreparedStatement(conn, getShipsAndInformation);
+        ps.setInt(1, minPos.first);
+        ps.setInt(2, maxPos.first);
+        ps.setInt(3, minPos.second);
+        ps.setInt(4, maxPos.second);
+        ps.setInt(5, solarSystemId);
         ResultSet rs = ps.executeQuery();
-        Pair<Integer, Integer> position;
-        int reachability;
-        int ssid;
-        Pair<Integer, Integer> systemMax;
-        try {
-            if (!rs.next()) {
-                System.out.println("Ship: " + Integer.toString(shipId));
-                return ERR_INVALID_SHIP;
-            } else {
-                position = new Pair<Integer, Integer>
-                        (rs.getInt(1), rs.getInt(2));
-                reachability = rs.getInt(3);
-                ssid = rs.getInt(4);
-                systemMax = new Pair<Integer, Integer>
-                        (rs.getInt(5), rs.getInt(6));
-            }
-        } finally {
-            rs.close();
-        }
-
-        // Cap the movement to reachability
-        if (move_x < 0) {
-            move_x = Math.max(move_x, -reachability);
-        } else {
-            move_x = Math.min(move_x, reachability);
-        }
-        if (move_y < 0) {
-            move_y = Math.max(move_y, -reachability);
-        } else {
-            move_y = Math.min(move_y, reachability);
-        }
-        Pair<Integer, Integer> newPosition = new Pair<Integer, Integer>
-                (Math.max(Math.min(systemMax.first, position.first + move_x), 0),
-                 Math.max(Math.min(systemMax.second, position.second + move_y), 0));
-
-        // Prepare the list of possible positions
-        ArrayList<Pair<Integer, Integer>> possibles = 
-                new ArrayList<Pair<Integer, Integer>>();
-        Pair<Integer, Integer> min = new Pair<Integer, Integer>
-                (Math.max(0, newPosition.first - 1), 
-                 Math.max(0, newPosition.second));
-        Pair<Integer, Integer> max = new Pair<Integer, Integer>
-                (Math.min(systemMax.first, newPosition.first + 1), 
-                 Math.min(systemMax.second, newPosition.second + 1));
-        for (int i = min.first; i <= max.first; i++) {
-            for (int j = min.second; j <= max.second; j++) {
-                possibles.add(new Pair<Integer, Integer>(i,j));
-            }
-        }
-
-        // Get all ships in the window
-        // and remove them from the possible positions
-        ps = getPreparedStatement(conn, checkTileStmt);
-        ps.setInt(1, newPosition.first);
-        ps.setInt(2, newPosition.first);
-        ps.setInt(3, newPosition.second);
-        ps.setInt(4, newPosition.second);
-        ps.setInt(5, ssid);
-        ps.setInt(6, shipId);
-        rs = ps.executeQuery();
+        
+         // Gather information about each ship, and save it in ships
         try {
             while (rs.next()) {
-                Pair<Integer, Integer> taken = new Pair<Integer, Integer>
-                        (rs.getInt(1), rs.getInt(2));
-                for (int i = 0; i < possibles.size(); i++) {
-                    if (taken.equals(possibles.get(i))) {
-                        possibles.remove(i);
-                    }
+                Ship ship = new Ship(rs.getInt(1)); // shipId
+                ship.positionX = rs.getInt(2);
+                ship.positionY = rs.getInt(3);
+                ship.positionZ = rs.getInt(4);
+                ship.reachability = rs.getInt(5);
+                ships.add(ship);
+                if (systemMax == null) {
+                    systemMax = new Pair<Integer,Integer>(rs.getInt(6), rs.getInt(7));
                 }
             }
         } finally {
             rs.close();
         }
+        return ships;
+    }
 
-        // Select a random position among the possibles, if any
-        if (possibles.size() == 0) {
-            return MOVE_NOT_SUCCESSFUL;
-        } else {
-            newPosition = possibles.get(rng.nextInt(possibles.size()));
-        }
-
-        // Update the ships position
-        ps = getPreparedStatement(conn, updateShipPosStmt);
-        ps.setInt(1, newPosition.first);
-        ps.setInt(2, newPosition.second);
-        ps.setInt(3, shipId);
-        ps.execute();
-
-        // Set the return value to 0: successful move
+    /**
+     * Runs the move procedure.
+     * <br>
+     * Starts by retrieving ship information, then it caps the movement to the
+     * ships reachability, then it checks if the position is occupied, and 
+     * finally it updates all the ships positions
+     * 
+     * @param conn The connection to the database
+     * @param solarSystemId The solar system, the region is in
+     * @param minPos The start position of the region
+     * @param maxPos The end position of the region
+     * @param rng The random generator that will be used
+     * @return MOVE_SUCCESSFUL if the move was possible and
+     * MOVE_NOT_SUCCESSFUL if not
+     * @throws SQLException
+     */
+    public long run(Connection conn, int solarSystemId, Pair<Integer, Integer> minPos, 
+            Pair<Integer, Integer> maxPos, Random rng) throws SQLException {
+        ArrayList<Ship> ships = getShipsInformation(conn, solarSystemId, minPos, maxPos);
+        if (ships.size() == 0) return MOVE_NOT_SUCCESSFUL;
+        generateMoves(ships, rng);
+        updateShipInformation(conn, ships);
         return MOVE_SUCCESSFUL;
+    }
+    
+    /**
+     * Updates all the given ships informations in the database
+     * 
+     * @param conn The connection to the database
+     * @param ships The ships that will be updated
+     * @throws SQLException
+     */
+    public void updateShipInformation(Connection conn, ArrayList<Ship> ships) throws SQLException {
+        PreparedStatement ps = getPreparedStatement(conn, updateShipPos);
+        for (Ship ship : ships) {
+            ps.setInt(1, ship.positionX);
+            ps.setInt(2, ship.positionY);
+            ps.setInt(3, ship.positionZ);
+            ps.setInt(4, ship.shipId);
+            ps.addBatch();
+        }
+        ps.executeBatch();
     }
 }
