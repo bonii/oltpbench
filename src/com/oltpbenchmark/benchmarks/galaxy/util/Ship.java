@@ -1,14 +1,14 @@
 package com.oltpbenchmark.benchmarks.galaxy.util;
 
+import com.oltpbenchmark.util.Triple;
+
 public class Ship {
     
     public final int shipId;
     
     // Move
     // TODO triple!
-    public int positionX;
-    public int positionY;
-    public int positionZ;
+    public Triple<Integer, Integer, Integer> position;
     public int reachability;
     
     // Combat

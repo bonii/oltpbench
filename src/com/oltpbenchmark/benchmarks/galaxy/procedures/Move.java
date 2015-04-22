@@ -12,7 +12,8 @@ import com.oltpbenchmark.api.Procedure;
 import com.oltpbenchmark.api.SQLStmt;
 import com.oltpbenchmark.benchmarks.galaxy.GalaxyConstants;
 import com.oltpbenchmark.benchmarks.galaxy.util.Ship;
-import com.oltpbenchmark.util.Pair;
+
+import com.oltpbenchmark.util.Triple;
 
 /**
  * A class containing the Move procedure
@@ -24,7 +25,7 @@ public class Move extends Procedure {
     public static final long MOVE_NOT_SUCCESSFUL = 1;
     
     // Solar system information
-    private Pair<Integer, Integer> systemMax;
+    private Triple<Integer, Integer, Integer> systemMax;
 
     // Get ship, class and solarsystem information
     public final SQLStmt getShipsAndInformation = new SQLStmt(
@@ -45,7 +46,7 @@ public class Move extends Procedure {
     // Update ship position
     public final SQLStmt updateShipPos = new SQLStmt(
         "UPDATE " + GalaxyConstants.TABLENAME_SHIPS +
-        " SET position_x = ?, position_y = ? WHERE ship_id = ?;"
+        " SET position_x = ?, position_y = ?, position_z = ? WHERE ship_id = ?;"
     );
     
     /**
@@ -55,25 +56,33 @@ public class Move extends Procedure {
      * @param ship The ship that is moving
      * @param moveOffset The offset that the ship is trying to move
      */
-    private void capToReachability(Ship ship, Pair<Integer, Integer> moveOffset) {
+    private void capToReachability(Ship ship, Triple<Integer, Integer, Integer> moveOffset) {
         int offsetX;
         int offsetY;
+        int offsetZ;
         
         // Cap to reachability
-        if (moveOffset.first < 0) {
-            offsetX = Math.max(moveOffset.first, -ship.reachability);
+        if (moveOffset.left < 0) {
+            offsetX = Math.max(moveOffset.left, -ship.reachability);
         } else {
-            offsetX = Math.min(moveOffset.first, ship.reachability);
+            offsetX = Math.min(moveOffset.left, ship.reachability);
         }
-        if (moveOffset.second < 0) {
-            offsetY = Math.max(moveOffset.second, -ship.reachability);
+        if (moveOffset.middle < 0) {
+            offsetY = Math.max(moveOffset.middle, -ship.reachability);
         } else {
-            offsetY = Math.min(moveOffset.second, ship.reachability);
+            offsetY = Math.min(moveOffset.middle, ship.reachability);
+        }
+        if (moveOffset.right < 0) {
+            offsetZ = Math.max(moveOffset.right, -ship.reachability);
+        } else {
+            offsetZ = Math.min(moveOffset.right, ship.reachability);
         }
         
         // Check if the ship is beyond solar system borders
-        ship.positionX = Math.max(Math.min(systemMax.first, ship.positionX + offsetX), 0);
-        ship.positionY = Math.max(Math.min(systemMax.second, ship.positionY + offsetY), 0);
+        int positionX = Math.max(Math.min(systemMax.left, ship.position.left + offsetX), 0);
+        int positionY = Math.max(Math.min(systemMax.middle, ship.position.middle + offsetY), 0);
+        int positionZ = Math.max(Math.min(systemMax.right, ship.position.right + offsetZ), 0);
+        ship.position = new Triple<Integer, Integer, Integer>(positionX, positionY, positionZ);
     }
     
     /**
@@ -86,12 +95,8 @@ public class Move extends Procedure {
      */
     private boolean isPositionTaken(Ship ship, ArrayList<Ship> ships) {
         for (Ship sh : ships) {
-            if (sh.shipId == ship.shipId) continue;
-            if (sh.positionX == ship.positionX && 
-                    sh.positionY == ship.positionY &&
-                    sh.positionZ == ship.positionZ) {
-                return true; // Position is taken
-            }
+            if (sh.shipId == ship.shipId) continue; // Do not check itself
+            if (sh.position == ship.position) return true; // Position is taken
         }
         return false; // Position is free
     }
@@ -108,13 +113,15 @@ public class Move extends Procedure {
             // Generate offsets
             int offsetX = rng.nextInt();
             int offsetY = rng.nextInt();
+            int offsetZ = rng.nextInt();
             
             // Generate if they should be negative
             offsetX *= (rng.nextBoolean()) ? -1 : 1;
             offsetY *= (rng.nextBoolean()) ? -1 : 1;
+            offsetZ *= (rng.nextBoolean()) ? -1 : 1;
             
             // Cap to reachability and check if position is free. Remove if not
-            capToReachability(ship, new Pair<Integer, Integer>(offsetX, offsetY));
+            capToReachability(ship, new Triple<Integer, Integer, Integer>(offsetX, offsetY, offsetZ));
             if (isPositionTaken(ship, ships)) ships.remove(i--);
             // TODO Check if can move, if not, offset by 1 in random direction? 
         }
@@ -132,29 +139,31 @@ public class Move extends Procedure {
      * @throws SQLException
      */
     private ArrayList<Ship> getShipsInformation(Connection conn, int solarSystemId, 
-            Pair<Integer, Integer> minPos, 
-            Pair<Integer, Integer> maxPos) throws SQLException {
+            Triple<Integer, Integer, Integer> minPos, 
+            Triple<Integer, Integer, Integer> maxPos) throws SQLException {
         // Prepare variables and statement
         ArrayList<Ship> ships = new ArrayList<Ship>();
         PreparedStatement ps = getPreparedStatement(conn, getShipsAndInformation);
-        ps.setInt(1, minPos.first);
-        ps.setInt(2, maxPos.first);
-        ps.setInt(3, minPos.second);
-        ps.setInt(4, maxPos.second);
-        ps.setInt(5, solarSystemId);
+        ps.setInt(1, minPos.left);
+        ps.setInt(2, maxPos.left);
+        ps.setInt(3, minPos.middle);
+        ps.setInt(4, maxPos.middle);
+        ps.setInt(5, minPos.right);
+        ps.setInt(6, maxPos.right);
+        ps.setInt(7, solarSystemId);
         ResultSet rs = ps.executeQuery();
         
          // Gather information about each ship, and save it in ships
         try {
             while (rs.next()) {
                 Ship ship = new Ship(rs.getInt(1)); // shipId
-                ship.positionX = rs.getInt(2);
-                ship.positionY = rs.getInt(3);
-                ship.positionZ = rs.getInt(4);
+                ship.position = new Triple<Integer, Integer, Integer>(
+                        rs.getInt(2), rs.getInt(3), rs.getInt(4));
                 ship.reachability = rs.getInt(5);
                 ships.add(ship);
-                if (systemMax == null) {
-                    systemMax = new Pair<Integer,Integer>(rs.getInt(6), rs.getInt(7));
+                if (systemMax == null) { // Only need to set it once
+                    systemMax = new Triple<Integer, Integer, Integer>(
+                            rs.getInt(6), rs.getInt(7), rs.getInt(8));
                 }
             }
         } finally {
@@ -179,8 +188,8 @@ public class Move extends Procedure {
      * MOVE_NOT_SUCCESSFUL if not
      * @throws SQLException
      */
-    public long run(Connection conn, int solarSystemId, Pair<Integer, Integer> minPos, 
-            Pair<Integer, Integer> maxPos, Random rng) throws SQLException {
+    public long run(Connection conn, int solarSystemId, Triple<Integer, Integer, Integer> minPos, 
+            Triple<Integer, Integer, Integer> maxPos, Random rng) throws SQLException {
         ArrayList<Ship> ships = getShipsInformation(conn, solarSystemId, minPos, maxPos);
         if (ships.size() == 0) return MOVE_NOT_SUCCESSFUL;
         generateMoves(ships, rng);
@@ -198,9 +207,9 @@ public class Move extends Procedure {
     public void updateShipInformation(Connection conn, ArrayList<Ship> ships) throws SQLException {
         PreparedStatement ps = getPreparedStatement(conn, updateShipPos);
         for (Ship ship : ships) {
-            ps.setInt(1, ship.positionX);
-            ps.setInt(2, ship.positionY);
-            ps.setInt(3, ship.positionZ);
+            ps.setInt(1, ship.position.left);
+            ps.setInt(2, ship.position.middle);
+            ps.setInt(3, ship.position.right);
             ps.setInt(4, ship.shipId);
             ps.addBatch();
         }
