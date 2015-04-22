@@ -22,8 +22,7 @@ public class Combat extends Procedure {
 
     // Potential return codes
     public static final long COMBAT_SUCCESSFUL = 0;
-    public static final long COMBAT_NOT_SUCCESSFUL = 1;
-    public static final long ERR_INVALID_SHIP = 2;
+    public static final long COMBAT_NOT_ENOUGH_SHIPS = 1;
 
     public final SQLStmt deleteFittings = new SQLStmt(
         "DELETE FROM " + GalaxyConstants.TABLENAME_FITTINGS + " " +
@@ -80,6 +79,7 @@ public class Combat extends Procedure {
     public long run(Connection conn, int solarSystemId, Triple<Integer, Integer, Integer> minPos,
         Triple<Integer, Integer, Integer> maxPos, Random rng) throws SQLException {
         ArrayList<Ship> ships = getShipInformation(conn, solarSystemId, minPos, maxPos);
+        if (ships.size() < 2) return COMBAT_NOT_ENOUGH_SHIPS;
         Pair<Integer, Integer> groupDmgs = getGroupDmgs(ships);
         divideDmgs(ships, groupDmgs);
         updateShips(conn, ships);

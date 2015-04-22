@@ -9,7 +9,6 @@ import com.oltpbenchmark.api.Worker;
 import com.oltpbenchmark.benchmarks.galaxy.procedures.Combat;
 import com.oltpbenchmark.benchmarks.galaxy.procedures.Move;
 import com.oltpbenchmark.types.TransactionStatus;
-import com.oltpbenchmark.util.Pair;
 import com.oltpbenchmark.util.Triple;
 
 /**
@@ -29,21 +28,11 @@ public class GalaxyWorker extends Worker {
     @Override
     protected TransactionStatus executeWork(TransactionType txnType) throws UserAbortException, SQLException {
         Move proc = getProcedure(Move.class);
+        assert(proc != null);
         Random rng = new Random();
         proc.run(conn, 6, new Triple<Integer, Integer, Integer>(0, 0, 0), new Triple<Integer, Integer, Integer>(71, 82, 20), rng);
         conn.commit();
         return TransactionStatus.SUCCESS;
-        /*Move proc = getProcedure(Move.class);
-        assert (proc != null);
-        Random rng = new Random();
-
-        // Generate a random move vector, within reason(MAX_MOVE)
-        int ship_id = rng.nextInt(GalaxyConstants.NUM_SHIPS) + 1;
-        int move_x = rng.nextInt(GalaxyConstants.MAX_MOVE * 2) - GalaxyConstants.MAX_MOVE;
-        int move_y = rng.nextInt(GalaxyConstants.MAX_MOVE * 2) - GalaxyConstants.MAX_MOVE;
-        proc.run(conn, ship_id, move_x, move_y, rng);
-        conn.commit();
-        return TransactionStatus.SUCCESS;*/
     }
 
 }

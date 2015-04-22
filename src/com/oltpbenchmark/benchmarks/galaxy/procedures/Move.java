@@ -22,7 +22,7 @@ public class Move extends Procedure {
 
     // Potential return codes
     public static final long MOVE_SUCCESSFUL = 0;
-    public static final long MOVE_NOT_SUCCESSFUL = 1;
+    public static final long MOVE_NO_SHIPS = 1;
     
     // Solar system information
     private Triple<Integer, Integer, Integer> systemMax;
@@ -192,7 +192,7 @@ public class Move extends Procedure {
     public long run(Connection conn, int solarSystemId, Triple<Integer, Integer, Integer> minPos, 
             Triple<Integer, Integer, Integer> maxPos, Random rng) throws SQLException {
         ArrayList<Ship> ships = getShipsInformation(conn, solarSystemId, minPos, maxPos);
-        if (ships.size() == 0) return MOVE_NOT_SUCCESSFUL;
+        if (ships.size() == 0) return MOVE_NO_SHIPS;
         generateMoves(ships, rng);
         updateShipInformation(conn, ships);
         return MOVE_SUCCESSFUL;
