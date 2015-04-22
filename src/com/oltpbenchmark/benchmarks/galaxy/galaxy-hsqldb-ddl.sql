@@ -23,9 +23,9 @@ CREATE TABLE CLASSES
 CREATE TABLE SOLAR_SYSTEMS
 (
   solar_system_id integer NOT NULL,
-  max_position_x  integer NOT NULL,
-  max_position_y  integer NOT NULL,
-  max_position_z  integer NOT NULL,
+  max_position_x  bigint  NOT NULL,
+  max_position_y  bigint  NOT NULL,
+  max_position_z  bigint  NOT NULL,
   security_level  integer NOT NULL,
   PRIMARY KEY
   (
@@ -37,9 +37,9 @@ CREATE TABLE SOLAR_SYSTEMS
 CREATE TABLE SHIPS
 (
   ship_id         integer NOT NULL,
-  position_x      integer NOT NULL,
-  position_y      integer NOT NULL,
-  position_z	  integer NOT NULL,
+  position_x      bigint  NOT NULL,
+  position_y      bigint  NOT NULL,
+  position_z	  bigint  NOT NULL,
   class_id        integer NOT NULL REFERENCES CLASSES (class_id),
   solar_system_id integer NOT NULL REFERENCES SOLAR_SYSTEMS (solar_system_id),
   health_points   integer NOT NULL,

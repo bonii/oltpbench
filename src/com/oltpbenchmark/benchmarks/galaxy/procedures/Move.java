@@ -25,7 +25,7 @@ public class Move extends Procedure {
     public static final long MOVE_NO_SHIPS = 1;
     
     // Solar system information
-    private Triple<Integer, Integer, Integer> systemMax;
+    private Triple<Long, Long, Long> systemMax;
 
     // Get ship, class and solarsystem information
     public final SQLStmt getShipsAndInformation = new SQLStmt(
@@ -80,10 +80,10 @@ public class Move extends Procedure {
         }
         
         // Check if the ship is beyond solar system borders
-        int positionX = Math.max(Math.min(systemMax.left, ship.position.left + offsetX), 0);
-        int positionY = Math.max(Math.min(systemMax.middle, ship.position.middle + offsetY), 0);
-        int positionZ = Math.max(Math.min(systemMax.right, ship.position.right + offsetZ), 0);
-        ship.position = new Triple<Integer, Integer, Integer>(positionX, positionY, positionZ);
+        long positionX = Math.max(Math.min(systemMax.left, ship.position.left + offsetX), 0);
+        long positionY = Math.max(Math.min(systemMax.middle, ship.position.middle + offsetY), 0);
+        long positionZ = Math.max(Math.min(systemMax.right, ship.position.right + offsetZ), 0);
+        ship.position = new Triple<Long, Long, Long>(positionX, positionY, positionZ);
     }
     
     /**
@@ -140,17 +140,17 @@ public class Move extends Procedure {
      * @throws SQLException
      */
     private ArrayList<Ship> getShipsInformation(Connection conn, int solarSystemId, 
-            Triple<Integer, Integer, Integer> minPos, 
-            Triple<Integer, Integer, Integer> maxPos) throws SQLException {
+            Triple<Long, Long, Long> minPos, 
+            Triple<Long, Long, Long> maxPos) throws SQLException {
         // Prepare variables and statement
         ArrayList<Ship> ships = new ArrayList<Ship>();
         PreparedStatement ps = getPreparedStatement(conn, getShipsAndInformation);
-        ps.setInt(1, minPos.left);
-        ps.setInt(2, maxPos.left);
-        ps.setInt(3, minPos.middle);
-        ps.setInt(4, maxPos.middle);
-        ps.setInt(5, minPos.right);
-        ps.setInt(6, maxPos.right);
+        ps.setLong(1, minPos.left);
+        ps.setLong(2, maxPos.left);
+        ps.setLong(3, minPos.middle);
+        ps.setLong(4, maxPos.middle);
+        ps.setLong(5, minPos.right);
+        ps.setLong(6, maxPos.right);
         ps.setInt(7, solarSystemId);
         ResultSet rs = ps.executeQuery();
         
@@ -158,13 +158,13 @@ public class Move extends Procedure {
         try {
             while (rs.next()) {
                 Ship ship = new Ship(rs.getInt(1)); // shipId
-                ship.position = new Triple<Integer, Integer, Integer>(
-                        rs.getInt(2), rs.getInt(3), rs.getInt(4));
+                ship.position = new Triple<Long, Long, Long>(
+                        rs.getLong(2), rs.getLong(3), rs.getLong(4));
                 ship.reachability = rs.getInt(5);
                 ships.add(ship);
                 if (systemMax == null) { // Only need to set it once
-                    systemMax = new Triple<Integer, Integer, Integer>(
-                            rs.getInt(6), rs.getInt(7), rs.getInt(8));
+                    systemMax = new Triple<Long, Long, Long>(
+                            rs.getLong(6), rs.getLong(7), rs.getLong(8));
                 }
             }
         } finally {
@@ -189,8 +189,8 @@ public class Move extends Procedure {
      * MOVE_NOT_SUCCESSFUL if not
      * @throws SQLException
      */
-    public long run(Connection conn, int solarSystemId, Triple<Integer, Integer, Integer> minPos, 
-            Triple<Integer, Integer, Integer> maxPos, Random rng) throws SQLException {
+    public long run(Connection conn, int solarSystemId, Triple<Long, Long, Long> minPos, 
+            Triple<Long, Long, Long> maxPos, Random rng) throws SQLException {
         ArrayList<Ship> ships = getShipsInformation(conn, solarSystemId, minPos, maxPos);
         if (ships.size() == 0) return MOVE_NO_SHIPS;
         generateMoves(ships, rng);
@@ -208,9 +208,9 @@ public class Move extends Procedure {
     public void updateShipInformation(Connection conn, ArrayList<Ship> ships) throws SQLException {
         PreparedStatement ps = getPreparedStatement(conn, updateShipPos);
         for (Ship ship : ships) {
-            ps.setInt(1, ship.position.left);
-            ps.setInt(2, ship.position.middle);
-            ps.setInt(3, ship.position.right);
+            ps.setLong(1, ship.position.left);
+            ps.setLong(2, ship.position.middle);
+            ps.setLong(3, ship.position.right);
             ps.setInt(4, ship.shipId);
             ps.addBatch();
         }

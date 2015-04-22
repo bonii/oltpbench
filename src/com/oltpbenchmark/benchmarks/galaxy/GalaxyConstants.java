@@ -39,8 +39,8 @@ public abstract class GalaxyConstants {
     
     // Solar systems
     public static final long AU = 149600000000L; // According to wolfram
-    public static final int MIN_SYSTEM_SIZE = 10;// TODO * AU;
-    public static final int MAX_SYSTEM_SIZE = 100;// TODO * AU;
+    public static final long MIN_SYSTEM_SIZE = 10 * AU;// TODO * AU;
+    public static final long MAX_SYSTEM_SIZE = 100 * AU;// TODO * AU;
     public static final int MIN_SECURITY = -10;
     public static final int MAX_SECURITY = 10;
     public static final int NUM_SOLAR_SYSTEMS = 1;

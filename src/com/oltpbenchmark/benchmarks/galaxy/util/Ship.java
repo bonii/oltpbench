@@ -8,7 +8,7 @@ public class Ship {
     
     // Move
     // TODO triple!
-    public Triple<Integer, Integer, Integer> position;
+    public Triple<Long, Long, Long> position;
     public int reachability;
     
     // Combat

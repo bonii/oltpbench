@@ -27,10 +27,11 @@ public class GalaxyWorker extends Worker {
 
     @Override
     protected TransactionStatus executeWork(TransactionType txnType) throws UserAbortException, SQLException {
-        Move proc = getProcedure(Move.class);
+        Combat proc = getProcedure(Combat.class);
         assert(proc != null);
         Random rng = new Random();
-        proc.run(conn, 6, new Triple<Integer, Integer, Integer>(0, 0, 0), new Triple<Integer, Integer, Integer>(71, 82, 20), rng);
+        proc.run(conn, 6, new Triple<Long, Long, Long>(0L, 0L, 0L), 
+                new Triple<Long, Long, Long>(100L * GalaxyConstants.AU, 100L * GalaxyConstants.AU, 100L * GalaxyConstants.AU), rng);
         conn.commit();
         return TransactionStatus.SUCCESS;
     }

@@ -76,8 +76,8 @@ public class Combat extends Procedure {
      * @return COMBAT_SUCCESSFUL if the procedure was successful
      * @throws SQLException
      */
-    public long run(Connection conn, int solarSystemId, Triple<Integer, Integer, Integer> minPos,
-        Triple<Integer, Integer, Integer> maxPos, Random rng) throws SQLException {
+    public long run(Connection conn, int solarSystemId, Triple<Long, Long, Long> minPos,
+        Triple<Long, Long, Long> maxPos, Random rng) throws SQLException {
         ArrayList<Ship> ships = getShipInformation(conn, solarSystemId, minPos, maxPos);
         if (ships.size() < 2) return COMBAT_NOT_ENOUGH_SHIPS;
         Pair<Integer, Integer> groupDmgs = getGroupDmgs(ships);
@@ -139,16 +139,16 @@ public class Combat extends Procedure {
      * @return An ArrayList containing all the ships in the region
      * @throws SQLException
      */
-    private ArrayList<Ship> getShipInformation(Connection conn, int solarSystemId, Triple<Integer, Integer, Integer> minPos,
-        Triple<Integer, Integer, Integer> maxPos) throws SQLException {
+    private ArrayList<Ship> getShipInformation(Connection conn, int solarSystemId, Triple<Long, Long, Long> minPos,
+        Triple<Long, Long, Long> maxPos) throws SQLException {
         // Get ship information
         PreparedStatement ps = getPreparedStatement(conn, queryShipsInRange);
-        ps.setInt(1, minPos.left);
-        ps.setInt(2, maxPos.left);
-        ps.setInt(3, minPos.middle);
-        ps.setInt(4, maxPos.middle);
-        ps.setInt(5, minPos.right);
-        ps.setInt(6, maxPos.right);
+        ps.setLong(1, minPos.left);
+        ps.setLong(2, maxPos.left);
+        ps.setLong(3, minPos.middle);
+        ps.setLong(4, maxPos.middle);
+        ps.setLong(5, minPos.right);
+        ps.setLong(6, maxPos.right);
         ps.setInt(7, solarSystemId);
         ResultSet rs = ps.executeQuery();
         ArrayList<Ship> ships = new ArrayList<Ship>();

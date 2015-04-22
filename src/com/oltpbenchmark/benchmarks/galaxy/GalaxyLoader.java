@@ -80,28 +80,28 @@ public class GalaxyLoader extends Loader {
         // Fill solar_systems table
         tbl = getTableCatalog(GalaxyConstants.TABLENAME_SOLARSYSTEMS);
         ps = this.conn.prepareStatement(SQLUtil.getInsertSQL(tbl, escapeNames));
-        ArrayList<Triple<Integer, Integer, Integer>> systemMax = 
-                new ArrayList<Triple<Integer, Integer, Integer>>();
+        ArrayList<Triple<Long, Long, Long>> systemMax = 
+                new ArrayList<Triple<Long, Long, Long>>();
         for (int i = 0; i < numSolarSystems; i++) {
             // Generate values
-            int xMax = GalaxyUtil.randInt(
+            long xMax = GalaxyUtil.randLong(
                     GalaxyConstants.MIN_SYSTEM_SIZE, 
                     GalaxyConstants.MAX_SYSTEM_SIZE, rng);
-            int yMax = GalaxyUtil.randInt(
+            long yMax = GalaxyUtil.randLong(
                     GalaxyConstants.MIN_SYSTEM_SIZE, 
                     GalaxyConstants.MAX_SYSTEM_SIZE, rng);
-            int zMax = GalaxyUtil.randInt(
+            long zMax = GalaxyUtil.randLong(
                     GalaxyConstants.MIN_SYSTEM_SIZE, 
                     GalaxyConstants.MAX_SYSTEM_SIZE, rng);
             int security = GalaxyUtil.randInt(
                     GalaxyConstants.MIN_SECURITY, 
                     GalaxyConstants.MAX_SECURITY, rng);
-            systemMax.add(new Triple<Integer, Integer, Integer>(xMax, yMax, zMax));
+            systemMax.add(new Triple<Long, Long, Long>(xMax, yMax, zMax));
             
             ps.setInt(1, i + 1); // Solarsystem ID(ssid)
-            ps.setInt(2, xMax); 
-            ps.setInt(3, yMax);
-            ps.setInt(4, zMax);
+            ps.setLong(2, xMax); 
+            ps.setLong(3, yMax);
+            ps.setLong(4, zMax);
             ps.setInt(5, security); // Security level
             ps.addBatch();
         }
@@ -127,15 +127,15 @@ public class GalaxyLoader extends Loader {
         int fittingsId = 0; // TODO fittings id hack
         for  (int i = 0; i < numShips; i++) {
             int solarSystemId = rng.nextInt(numSolarSystems);
-            int positionX = rng.nextInt(systemMax.get(solarSystemId).left);
-            int positionY = rng.nextInt(systemMax.get(solarSystemId).middle);
-            int positionZ = rng.nextInt(systemMax.get(solarSystemId).right);
+            long positionX = GalaxyUtil.nextLong(rng, systemMax.get(solarSystemId).left);
+            long positionY = GalaxyUtil.nextLong(rng, systemMax.get(solarSystemId).middle);
+            long positionZ = GalaxyUtil.nextLong(rng, systemMax.get(solarSystemId).right);
             int classId = rng.nextInt(numClasses);
 
             ps.setInt(1, i + 1);  // Ship ID(sid)
-            ps.setInt(2, positionX);
-            ps.setInt(3, positionY);
-            ps.setInt(4, positionZ);
+            ps.setLong(2, positionX);
+            ps.setLong(3, positionY);
+            ps.setLong(4, positionZ);
             ps.setInt(5, classId + 1);
             ps.setInt(6, solarSystemId + 1);
             ps.setInt(7, classHealths[classId]);
