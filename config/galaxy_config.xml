@@ -15,7 +15,7 @@
     <terminals>1</terminals>
     <works>
         <work>
-          <time>60</time>
+          <time>10</time>
           <rate>1</rate>
           <weights>1</weights>
           <serial>true</serial>
@@ -25,6 +25,7 @@
     <!-- Voter Procedures declaration -->
     <transactiontypes>
         <transactiontype>
+        	<name>Move</name>
         	<name>Combat</name>
         </transactiontype>
     </transactiontypes>

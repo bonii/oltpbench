@@ -50,6 +50,7 @@ CREATE TABLE SHIPS
 );
 CREATE INDEX idx_ships_x ON SHIPS (position_x);
 CREATE INDEX idx_ships_y ON SHIPS (position_y);
+CREATE INDEX idx_ships_z ON SHIPS (position_z);
 
 -- fitting table holds information about a fitting
 CREATE TABLE FITTING

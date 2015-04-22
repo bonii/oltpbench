@@ -40,7 +40,8 @@ public class Move extends Procedure {
         GalaxyConstants.TABLENAME_SOLARSYSTEMS + ".solar_system_id " +
         "WHERE position_x BETWEEN ? AND ? AND " + 
         "position_y BETWEEN ? AND ? AND " +
-        "position_z BETWEEN ? AND ? AND solar_system_id = ?;"
+        "position_z BETWEEN ? AND ? AND " +
+        GalaxyConstants.TABLENAME_SHIPS + ".solar_system_id = ?;"
     );
 
     // Update ship position

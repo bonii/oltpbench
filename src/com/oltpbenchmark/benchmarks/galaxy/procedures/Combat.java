@@ -12,6 +12,7 @@ import com.oltpbenchmark.api.Procedure;
 import com.oltpbenchmark.api.SQLStmt;
 import com.oltpbenchmark.benchmarks.galaxy.GalaxyConstants;
 import com.oltpbenchmark.benchmarks.galaxy.util.Ship;
+import com.oltpbenchmark.util.Triple;
 import com.oltpbenchmark.util.Pair;
 
 /**
@@ -50,6 +51,7 @@ public class Combat extends Procedure {
         "= " + GalaxyConstants.TABLENAME_FITTING + ".fitting_id " + 
         "WHERE position_x BETWEEN ? AND ? " + 
         "AND position_y BETWEEN ? AND ? " +
+        "AND position_z BETWEEN ? AND ? " +
         "AND solar_system_id = ? " +
         "GROUP BY " + GalaxyConstants.TABLENAME_SHIPS + ".ship_id;"
     );
@@ -75,8 +77,8 @@ public class Combat extends Procedure {
      * @return COMBAT_SUCCESSFUL if the procedure was successful
      * @throws SQLException
      */
-    public long run(Connection conn, int solarSystemId, Pair<Integer, Integer> minPos,
-        Pair<Integer, Integer> maxPos, Random rng) throws SQLException {
+    public long run(Connection conn, int solarSystemId, Triple<Integer, Integer, Integer> minPos,
+        Triple<Integer, Integer, Integer> maxPos, Random rng) throws SQLException {
         ArrayList<Ship> ships = getShipInformation(conn, solarSystemId, minPos, maxPos);
         Pair<Integer, Integer> groupDmgs = getGroupDmgs(ships);
         divideDmgs(ships, groupDmgs);
@@ -137,15 +139,17 @@ public class Combat extends Procedure {
      * @return An ArrayList containing all the ships in the region
      * @throws SQLException
      */
-    private ArrayList<Ship> getShipInformation(Connection conn, int solarSystemId, Pair<Integer, Integer> minPos,
-        Pair<Integer, Integer> maxPos) throws SQLException {
+    private ArrayList<Ship> getShipInformation(Connection conn, int solarSystemId, Triple<Integer, Integer, Integer> minPos,
+        Triple<Integer, Integer, Integer> maxPos) throws SQLException {
         // Get ship information
         PreparedStatement ps = getPreparedStatement(conn, queryShipsInRange);
-        ps.setInt(1, minPos.first);
-        ps.setInt(2, maxPos.first);
-        ps.setInt(3, minPos.second);
-        ps.setInt(4, maxPos.second);
-        ps.setInt(5, solarSystemId);
+        ps.setInt(1, minPos.left);
+        ps.setInt(2, maxPos.left);
+        ps.setInt(3, minPos.middle);
+        ps.setInt(4, maxPos.middle);
+        ps.setInt(5, minPos.right);
+        ps.setInt(6, maxPos.right);
+        ps.setInt(7, solarSystemId);
         ResultSet rs = ps.executeQuery();
         ArrayList<Ship> ships = new ArrayList<Ship>();
         try {

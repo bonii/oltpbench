@@ -9,8 +9,9 @@ import java.util.Random;
 import com.oltpbenchmark.api.Loader;
 import com.oltpbenchmark.catalog.Table;
 import com.oltpbenchmark.types.DatabaseType;
-import com.oltpbenchmark.util.Pair;
+//import com.oltpbenchmark.util.Pair;
 import com.oltpbenchmark.util.SQLUtil;
+import com.oltpbenchmark.util.Triple;
 
 /**
  * A class that prepares the database for the benchmark
@@ -79,8 +80,8 @@ public class GalaxyLoader extends Loader {
         // Fill solar_systems table
         tbl = getTableCatalog(GalaxyConstants.TABLENAME_SOLARSYSTEMS);
         ps = this.conn.prepareStatement(SQLUtil.getInsertSQL(tbl, escapeNames));
-        ArrayList<Pair<Integer, Integer>> systemMax = 
-                new ArrayList<Pair<Integer, Integer>>();
+        ArrayList<Triple<Integer, Integer, Integer>> systemMax = 
+                new ArrayList<Triple<Integer, Integer, Integer>>();
         for (int i = 0; i < numSolarSystems; i++) {
             // Generate values
             int xMax = GalaxyUtil.randInt(
@@ -89,15 +90,19 @@ public class GalaxyLoader extends Loader {
             int yMax = GalaxyUtil.randInt(
                     GalaxyConstants.MIN_SYSTEM_SIZE, 
                     GalaxyConstants.MAX_SYSTEM_SIZE, rng);
+            int zMax = GalaxyUtil.randInt(
+                    GalaxyConstants.MIN_SYSTEM_SIZE, 
+                    GalaxyConstants.MAX_SYSTEM_SIZE, rng);
             int security = GalaxyUtil.randInt(
                     GalaxyConstants.MIN_SECURITY, 
                     GalaxyConstants.MAX_SECURITY, rng);
-            systemMax.add(new Pair<Integer, Integer>(xMax, yMax));
+            systemMax.add(new Triple<Integer, Integer, Integer>(xMax, yMax, zMax));
             
             ps.setInt(1, i + 1); // Solarsystem ID(ssid)
             ps.setInt(2, xMax); 
-            ps.setInt(3, yMax); 
-            ps.setInt(4, security); // Security level
+            ps.setInt(3, yMax);
+            ps.setInt(4, zMax);
+            ps.setInt(5, security); // Security level
             ps.addBatch();
         }
         ps.executeBatch();
@@ -122,16 +127,18 @@ public class GalaxyLoader extends Loader {
         int fittingsId = 0; // TODO fittings id hack
         for  (int i = 0; i < numShips; i++) {
             int solarSystemId = rng.nextInt(numSolarSystems);
-            int positionX = rng.nextInt(systemMax.get(solarSystemId).first);
-            int positionY = rng.nextInt(systemMax.get(solarSystemId).second);
+            int positionX = rng.nextInt(systemMax.get(solarSystemId).left);
+            int positionY = rng.nextInt(systemMax.get(solarSystemId).middle);
+            int positionZ = rng.nextInt(systemMax.get(solarSystemId).right);
             int classId = rng.nextInt(numClasses);
 
             ps.setInt(1, i + 1);  // Ship ID(sid)
             ps.setInt(2, positionX);
             ps.setInt(3, positionY);
-            ps.setInt(4, classId + 1);
-            ps.setInt(5, solarSystemId + 1);
-            ps.setInt(6, classHealths[classId]);
+            ps.setInt(4, positionZ);
+            ps.setInt(5, classId + 1);
+            ps.setInt(6, solarSystemId + 1);
+            ps.setInt(7, classHealths[classId]);
             ps.addBatch();
             
             int numFittings = GalaxyUtil.randInt(1, classFittings[classId], rng);

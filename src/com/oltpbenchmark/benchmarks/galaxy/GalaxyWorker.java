@@ -10,6 +10,7 @@ import com.oltpbenchmark.benchmarks.galaxy.procedures.Combat;
 import com.oltpbenchmark.benchmarks.galaxy.procedures.Move;
 import com.oltpbenchmark.types.TransactionStatus;
 import com.oltpbenchmark.util.Pair;
+import com.oltpbenchmark.util.Triple;
 
 /**
  * A class, which handles the work a worker needs to do
@@ -27,9 +28,9 @@ public class GalaxyWorker extends Worker {
 
     @Override
     protected TransactionStatus executeWork(TransactionType txnType) throws UserAbortException, SQLException {
-        Combat proc = getProcedure(Combat.class);
+        Move proc = getProcedure(Move.class);
         Random rng = new Random();
-        proc.run(conn, 6, new Pair<Integer, Integer>(0, 0), new Pair<Integer, Integer>(50, 50), rng);
+        proc.run(conn, 6, new Triple<Integer, Integer, Integer>(0, 0, 0), new Triple<Integer, Integer, Integer>(71, 82, 20), rng);
         conn.commit();
         return TransactionStatus.SUCCESS;
         /*Move proc = getProcedure(Move.class);
