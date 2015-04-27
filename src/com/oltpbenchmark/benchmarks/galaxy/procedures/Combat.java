@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.Random;
 import java.lang.Math;
 
-import org.commons.lang3.tuple.ImmutableTriple;
+import org.apache.commons.lang3.tuple.ImmutableTriple;
 
 import com.oltpbenchmark.api.Procedure;
 import com.oltpbenchmark.api.SQLStmt;

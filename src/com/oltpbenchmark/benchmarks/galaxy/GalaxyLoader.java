@@ -6,7 +6,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Random;
 
-import org.commons.lang3.tuple.ImmutableTriple;
+import org.apache.commons.lang3.tuple.ImmutableTriple;
 
 import com.oltpbenchmark.api.Loader;
 import com.oltpbenchmark.catalog.Table;

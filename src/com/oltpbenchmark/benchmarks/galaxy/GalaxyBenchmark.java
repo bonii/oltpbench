@@ -28,7 +28,6 @@ public class GalaxyBenchmark extends BenchmarkModule {
     @Override
     protected List<Worker> makeWorkersImpl(boolean verbose) throws IOException {
         List<Worker> workers = new ArrayList<Worker>();
-        ArrayList<ActivityRegion> activityRegions = new ArrayList<ActivityRegion>();
         int numWorkers = workConf.getTerminals();
 
         for (int i = 0; i < numWorkers; ++i) {

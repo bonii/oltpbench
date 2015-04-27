@@ -13,7 +13,7 @@ import com.oltpbenchmark.api.SQLStmt;
 import com.oltpbenchmark.benchmarks.galaxy.GalaxyConstants;
 import com.oltpbenchmark.benchmarks.galaxy.util.Ship;
 
-import org.commons.lang3.tuple.ImmutableTriple;
+import org.apache.commons.lang3.tuple.ImmutableTriple;
 
 /**
  * A class containing the Move procedure
