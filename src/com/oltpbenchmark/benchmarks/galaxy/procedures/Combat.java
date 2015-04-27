@@ -8,11 +8,12 @@ import java.util.ArrayList;
 import java.util.Random;
 import java.lang.Math;
 
+import org.commons.lang3.tuple.ImmutableTriple;
+
 import com.oltpbenchmark.api.Procedure;
 import com.oltpbenchmark.api.SQLStmt;
 import com.oltpbenchmark.benchmarks.galaxy.GalaxyConstants;
 import com.oltpbenchmark.benchmarks.galaxy.util.Ship;
-import com.oltpbenchmark.util.Triple;
 import com.oltpbenchmark.util.Pair;
 
 /**
@@ -28,33 +29,33 @@ public class Combat extends Procedure {
         "DELETE FROM " + GalaxyConstants.TABLENAME_FITTINGS + " " +
         "WHERE ship_id = ?;"
     );
-    
+
     public final SQLStmt deleteShip = new SQLStmt(
         "DELETE FROM " + GalaxyConstants.TABLENAME_SHIPS + " " +
         "WHERE ship_id = ?;"
     );
-    
-    // Get all ships within a range in a specified solar system    
+
+    // Get all ships within a range in a specified solar system
     public final SQLStmt queryShipsInRange = new SQLStmt(
-        "SELECT ships.ship_id, health_points, " + 
+        "SELECT ships.ship_id, health_points, " +
         "SUM(CASE WHEN fitting_type = " + GalaxyConstants.FITTING_TYPE_OFFENSIVE +
-        " THEN fitting_value ELSE 0 END) as offensive," + 
-        "SUM(CASE WHEN fitting_type = " + GalaxyConstants.FITTING_TYPE_DEFENSIVE + 
+        " THEN fitting_value ELSE 0 END) as offensive," +
+        "SUM(CASE WHEN fitting_type = " + GalaxyConstants.FITTING_TYPE_DEFENSIVE +
         " THEN fitting_value ELSE 0 END) as defensive " +
         "FROM " + GalaxyConstants.TABLENAME_SHIPS + " " +
         "JOIN " + GalaxyConstants.TABLENAME_FITTINGS + " " +
         "ON " + GalaxyConstants.TABLENAME_SHIPS + ".ship_id " +
         "= " + GalaxyConstants.TABLENAME_FITTINGS + ".ship_id " +
-        "JOIN " + GalaxyConstants.TABLENAME_FITTING + " " + 
+        "JOIN " + GalaxyConstants.TABLENAME_FITTING + " " +
         "ON " + GalaxyConstants.TABLENAME_FITTINGS + ".fitting_id " +
-        "= " + GalaxyConstants.TABLENAME_FITTING + ".fitting_id " + 
-        "WHERE position_x BETWEEN ? AND ? " + 
+        "= " + GalaxyConstants.TABLENAME_FITTING + ".fitting_id " +
+        "WHERE position_x BETWEEN ? AND ? " +
         "AND position_y BETWEEN ? AND ? " +
         "AND position_z BETWEEN ? AND ? " +
         "AND solar_system_id = ? " +
         "GROUP BY " + GalaxyConstants.TABLENAME_SHIPS + ".ship_id;"
     );
-    
+
     public final SQLStmt updateShip = new SQLStmt(
         "UPDATE " + GalaxyConstants.TABLENAME_SHIPS + " " +
         "SET health_points = ? WHERE ship_id = ?;"
@@ -65,9 +66,9 @@ public class Combat extends Procedure {
      * <br>
      * Starts by collecting information about all the ships present in the
      * region, then it divides the ships into two groups, and sum their damage,
-     * then it distributes the summed damage over the ships in the opposite 
+     * then it distributes the summed damage over the ships in the opposite
      * group, and finally, it updates the database with the new information
-     * 
+     *
      * @param conn The connection to the database
      * @param solarSystemId The solar system, the region is in
      * @param minPos The start position of the region
@@ -76,8 +77,8 @@ public class Combat extends Procedure {
      * @return COMBAT_SUCCESSFUL if the procedure was successful
      * @throws SQLException
      */
-    public long run(Connection conn, int solarSystemId, Triple<Long, Long, Long> minPos,
-        Triple<Long, Long, Long> maxPos, Random rng) throws SQLException {
+    public long run(Connection conn, int solarSystemId, ImmutableTriple<Long, Long, Long> minPos,
+        ImmutableTriple<Long, Long, Long> maxPos, Random rng) throws SQLException {
         ArrayList<Ship> ships = getShipInformation(conn, solarSystemId, minPos, maxPos);
         if (ships.size() < 2) return COMBAT_NOT_ENOUGH_SHIPS;
         Pair<Integer, Integer> groupDmgs = getGroupDmgs(ships);
@@ -85,10 +86,10 @@ public class Combat extends Procedure {
         updateShips(conn, ships);
         return COMBAT_SUCCESSFUL;
     }
-    
+
     /**
      * Divides damages among the two groups of ships.
-     * 
+     *
      * @param ships The ships that are engaged in this combat
      * @param groupDmgs The two damage sums from both groups
      */
@@ -102,17 +103,17 @@ public class Combat extends Procedure {
         for (int i = 0; i < ships.size(); i++) {
             Ship ship = ships.get(i);
             if (i % 2 == 0) {
-                ship.healthPoints -= Math.max(0, group2Avg - ship.defence); 
+                ship.healthPoints -= Math.max(0, group2Avg - ship.defence);
             } else {
                 ship.healthPoints -= Math.max(0, group1Avg - ship.defence);
             }
         }
     }
-    
+
     // TODO make avgs?
     /**
      * Divides the ships into two groups, and sum their damage
-     * 
+     *
      * @param ships The ships that are in the region
      * @return A Pair, that contains the two damage sums
      */
@@ -131,7 +132,7 @@ public class Combat extends Procedure {
 
     /**
      * Gets all the ships, and their information, that are in the region
-     * 
+     *
      * @param conn The connection to the database
      * @param solarSystemId The solar system, the region is in
      * @param minPos The start position of the region
@@ -139,8 +140,8 @@ public class Combat extends Procedure {
      * @return An ArrayList containing all the ships in the region
      * @throws SQLException
      */
-    private ArrayList<Ship> getShipInformation(Connection conn, int solarSystemId, Triple<Long, Long, Long> minPos,
-        Triple<Long, Long, Long> maxPos) throws SQLException {
+    private ArrayList<Ship> getShipInformation(Connection conn, int solarSystemId, ImmutableTriple<Long, Long, Long> minPos,
+        ImmutableTriple<Long, Long, Long> maxPos) throws SQLException {
         // Get ship information
         PreparedStatement ps = getPreparedStatement(conn, queryShipsInRange);
         ps.setLong(1, minPos.left);
@@ -165,15 +166,15 @@ public class Combat extends Procedure {
         }
         return ships;
     }
-    
+
     /**
      * Updates all the ships information, in the database
-     * 
+     *
      * @param conn The connection to the database
      * @param ships The ships that are in the region
      * @throws SQLException
      */
-    private void updateShips(Connection conn, ArrayList<Ship> ships) 
+    private void updateShips(Connection conn, ArrayList<Ship> ships)
             throws SQLException {
         PreparedStatement shipUpdates = getPreparedStatement(conn, updateShip);
         PreparedStatement shipDeletes = getPreparedStatement(conn, deleteShip);
