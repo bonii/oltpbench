@@ -6,6 +6,9 @@ public class Ship {
     
     public final int shipId;
     
+    // Idle
+    public int class_id;
+    
     // Move
     // TODO triple!
     public Triple<Long, Long, Long> position;

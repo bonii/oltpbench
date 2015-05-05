@@ -9,7 +9,7 @@
     <password>test</password>
     <isolation>TRANSACTION_READ_COMMITTED</isolation>
 
-    <scalefactor>10</scalefactor>
+    <scalefactor>1000</scalefactor>
 
     <!-- The workload -->
     <terminals>1</terminals>
@@ -25,8 +25,7 @@
     <!-- Voter Procedures declaration -->
     <transactiontypes>
         <transactiontype>
-        	
-        	<name>Combat</name>
+        	<name>Idle</name>
         </transactiontype>
     </transactiontypes>
 </parameters>
