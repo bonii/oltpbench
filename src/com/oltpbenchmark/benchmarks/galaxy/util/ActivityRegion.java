@@ -13,5 +13,6 @@ public class ActivityRegion {
         this.solarSystemId  = solarSystemId;
         this.startPos       = startPos;
         this.endPos         = endPos;
+        this.probabilityVector = probabilityVector;
     }
 }
