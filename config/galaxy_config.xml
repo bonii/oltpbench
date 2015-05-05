@@ -25,7 +25,7 @@
     <!-- Voter Procedures declaration -->
     <transactiontypes>
         <transactiontype>
-        	<name>Idle</name>
+        	<name>Move</name>
         </transactiontype>
     </transactiontypes>
 </parameters>

@@ -27,6 +27,15 @@ public class Move extends Procedure {
     // Solar system information
     private Triple<Long, Long, Long> systemMax;
 
+    public final SQLStmt getShips = new SQLStmt(
+            "SELECT position_x, position_y, position_z FROM " +
+            GalaxyConstants.TABLENAME_SHIPS + " WHERE " +
+            "position_x BETWEEN ? AND ? AND " + 
+            "position_y BETWEEN ? AND ? AND " +
+            "position_z BETWEEN ? AND ? AND " +
+            "solar_system_id = ?;"
+    );
+    
     // Get ship, class and solarsystem information
     public final SQLStmt getShipsAndInformation = new SQLStmt(
         "SELECT ship_id, position_x, position_y, position_z, reachability, " + 
@@ -57,7 +66,8 @@ public class Move extends Procedure {
      * @param ship The ship that is moving
      * @param moveOffset The offset that the ship is trying to move
      */
-    private void capToReachability(Ship ship, Triple<Integer, Integer, Integer> moveOffset) {
+    private Triple<Long, Long, Long> capToReachability(
+            Ship ship, Triple<Integer, Integer, Integer> moveOffset) {
         int offsetX;
         int offsetY;
         int offsetZ;
@@ -83,7 +93,7 @@ public class Move extends Procedure {
         long positionX = Math.max(Math.min(systemMax.left, ship.position.left + offsetX), 0);
         long positionY = Math.max(Math.min(systemMax.middle, ship.position.middle + offsetY), 0);
         long positionZ = Math.max(Math.min(systemMax.right, ship.position.right + offsetZ), 0);
-        ship.position = new Triple<Long, Long, Long>(positionX, positionY, positionZ);
+        return new Triple<Long, Long, Long>(positionX, positionY, positionZ);
     }
     
     /**
@@ -94,12 +104,41 @@ public class Move extends Procedure {
      * @param ships The other ships, in the same region
      * @return True, if there is another ship at the given position
      */
-    private boolean isPositionTaken(Ship ship, ArrayList<Ship> ships) {
-        for (Ship sh : ships) {
-            if (sh.shipId == ship.shipId) continue; // Do not check itself
-            if (sh.position == ship.position) return true; // Position is taken
+    private Triple<Long, Long, Long> getFreePosition(Connection conn, 
+            int solarSystemId, Triple<Long, Long, Long> position, 
+            Random rng) throws SQLException {
+        ArrayList<Triple<Long, Long, Long>> positions =
+                new ArrayList<Triple<Long, Long, Long>>();
+        for (long i = position.left-1; i < position.left+2; i++) {
+            for (long j = position.middle-1; j < position.middle+2; j++) {
+                for (long k = position.right-1; k < position.right+2; k++) {
+                    positions.add(new Triple<Long, Long, Long>(i,j,k));
+                }
+            }
         }
-        return false; // Position is free
+        PreparedStatement ps = getPreparedStatement(conn, getShips);
+        ps.setLong(1, position.left-1);
+        ps.setLong(2, position.left+1);
+        ps.setLong(3, position.middle-1);
+        ps.setLong(4, position.middle+1);
+        ps.setLong(5, position.right-1);
+        ps.setLong(6, position.right+1);
+        ps.setInt(7, solarSystemId);
+        ResultSet rs = ps.executeQuery();
+        try {
+            while (rs.next()) {
+                positions.remove(new Triple<Long, Long, Long>(
+                        rs.getLong(1), rs.getLong(2), rs.getLong(3)
+                ));
+            }
+        } finally {
+            rs.close();
+        }
+        if (positions.size() > 0) {
+            return positions.get(rng.nextInt(positions.size()));
+        } else {
+            return null;
+        }
     }
     
     /**
@@ -107,7 +146,8 @@ public class Move extends Procedure {
      * @param ships The ships, that will move
      * @param rng The random generator that will be used
      */
-    private void generateMoves(ArrayList<Ship> ships, Random rng) {
+    private void generateMoves(Connection conn, int solarSystemId, 
+            ArrayList<Ship> ships, Random rng) throws SQLException {
         for (int i = 0; i < ships.size(); i++) {
             Ship ship = ships.get(i);
             
@@ -122,9 +162,15 @@ public class Move extends Procedure {
             offsetZ *= (rng.nextBoolean()) ? -1 : 1;
             
             // Cap to reachability and check if position is free. Remove if not
-            capToReachability(ship, new Triple<Integer, Integer, Integer>(offsetX, offsetY, offsetZ));
-            if (isPositionTaken(ship, ships)) ships.remove(i--);
-            // TODO Check if can move, if not, offset by 1 in random direction? 
+            Triple<Long, Long, Long> newPosition = 
+                    capToReachability(ship, 
+                            new Triple<Integer, Integer, Integer>(offsetX, offsetY, offsetZ));
+            newPosition = getFreePosition(conn, solarSystemId, newPosition, rng);
+            if (newPosition == null) {
+                ships.remove(i--);
+            } else {
+                ships.get(i).position = newPosition;
+            }
         }
     }
     
@@ -193,7 +239,7 @@ public class Move extends Procedure {
             Triple<Long, Long, Long> maxPos, Random rng) throws SQLException {
         ArrayList<Ship> ships = getShipsInformation(conn, solarSystemId, minPos, maxPos);
         if (ships.size() == 0) return MOVE_NO_SHIPS;
-        generateMoves(ships, rng);
+        generateMoves(conn, solarSystemId, ships, rng);
         updateShipInformation(conn, ships);
         return MOVE_SUCCESSFUL;
     }
