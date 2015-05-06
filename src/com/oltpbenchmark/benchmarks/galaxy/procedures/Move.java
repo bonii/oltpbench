@@ -27,6 +27,7 @@ public class Move extends Procedure {
     // Solar system information
     private Triple<Long, Long, Long> systemMax;
 
+    // Get ship positions, that are within range
     public final SQLStmt getShips = new SQLStmt(
             "SELECT position_x, position_y, position_z FROM " +
             GalaxyConstants.TABLENAME_SHIPS + " WHERE " +
@@ -65,6 +66,7 @@ public class Move extends Procedure {
      * 
      * @param ship The ship that is moving
      * @param moveOffset The offset that the ship is trying to move
+     * @return An triple, containing the new position
      */
     private Triple<Long, Long, Long> capToReachability(
             Ship ship, Triple<Integer, Integer, Integer> moveOffset) {
@@ -97,16 +99,19 @@ public class Move extends Procedure {
     }
     
     /**
-     * Checks if there is another ship at a given position.
+     * Finds a free position, which at most differ by 1 from the target position
      * 
-     * @param ship The ship that is trying to move (ie. will be excluded from 
-     *         search
-     * @param ships The other ships, in the same region
-     * @return True, if there is another ship at the given position
+     * @param conn The connection to the database
+     * @param solarSystemId The solar system the procedure is running on
+     * @param position The target position
+     * @param rng A random generator
+     * @return A Triple containing the new position, or null if there were none
+     * @throws SQLException
      */
     private Triple<Long, Long, Long> getFreePosition(Connection conn, 
             int solarSystemId, Triple<Long, Long, Long> position, 
             Random rng) throws SQLException {
+        
         ArrayList<Triple<Long, Long, Long>> positions =
                 new ArrayList<Triple<Long, Long, Long>>();
         for (long i = position.left-1; i < position.left+2; i++) {
@@ -143,8 +148,12 @@ public class Move extends Procedure {
     
     /**
      * Generates a random move for each given ship, using the given random generator
-     * @param ships The ships, that will move
-     * @param rng The random generator that will be used
+     * 
+     * @param conn The connection to the database
+     * @param solarSystemId The solar system the ships are in
+     * @param ships The given ships
+     * @param rng The given random generator
+     * @throws SQLException
      */
     private void generateMoves(Connection conn, int solarSystemId, 
             ArrayList<Ship> ships, Random rng) throws SQLException {

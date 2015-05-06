@@ -12,11 +12,15 @@ import com.oltpbenchmark.benchmarks.galaxy.GalaxyConstants;
 import com.oltpbenchmark.benchmarks.galaxy.util.Ship;
 import com.oltpbenchmark.util.Triple;
 
+/**
+ * A class containing the Idle procedure
+ */
 public class Idle extends Procedure {
     
     // Possible return codes
     public static final long IDLE_SUCCESSFUL = 0L;
     
+    // Get ship id, position and class
     public final SQLStmt getShipsStmt = new SQLStmt(
             "SELECT ship_id, position_x, position_y, position_z, class_id FROM " +
             GalaxyConstants.TABLENAME_SHIPS + " WHERE " +
@@ -26,6 +30,16 @@ public class Idle extends Procedure {
             "solar_system_id = ?;"
     );
     
+    /**
+     * Returns all ships, that lie within the given region, i.e. minPos and maxPos
+     * 
+     * @param conn The connection the the database
+     * @param solarSystemId The solar system the region is in
+     * @param minPos The start position of the region
+     * @param maxPos The end position of the region
+     * @return An ArrayList containing all the ships in the region
+     * @throws SQLException
+     */
     private ArrayList<Ship> getShips(Connection conn, int solarSystemId, 
             Triple<Long, Long, Long> minPos, Triple<Long, Long, Long> maxPos)
             throws SQLException {
@@ -54,6 +68,15 @@ public class Idle extends Procedure {
         return ships;
     }
     
+    /**
+     * Gets all the objects, that are within the visible range of each given ship.
+     * The result is not used
+     * 
+     * @param conn The connection to the database
+     * @param solarSystemId The solar system the ships are in
+     * @param ships The ships that should be used
+     * @throws SQLException
+     */
     private void getVisibleObjects(Connection conn, int solarSystemId, 
             ArrayList<Ship> ships) throws SQLException {
         for (Ship ship : ships) {
@@ -82,7 +105,19 @@ public class Idle extends Procedure {
     }
     
     // TODO Get locations!
-    
+    /**
+     * Runs the Idle procedure.
+     * <br>
+     * Starts by gathering information about all the ships in the given range.
+     * Then it gets all objects, that are within the visible range of the ship.
+     * 
+     * @param conn The connection to the database
+     * @param solarSystemId The solar system the region is in
+     * @param minPos The start position of the region
+     * @param maxPos The end position of the region
+     * @return IDLE_SUCCESSFUL if there were no SQLExceptions underway
+     * @throws SQLException
+     */
     public long run(Connection conn, int solarSystemId, Triple<Long, Long, Long> minPos,
         Triple<Long, Long, Long> maxPos) throws SQLException {
         ArrayList<Ship> ships = getShips(conn, solarSystemId, minPos, maxPos);

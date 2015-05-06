@@ -24,11 +24,13 @@ public class Combat extends Procedure {
     public static final long COMBAT_SUCCESSFUL = 0;
     public static final long COMBAT_NOT_ENOUGH_SHIPS = 1;
 
+    // Delete all fittings that are attached to the given ship
     public final SQLStmt deleteFittings = new SQLStmt(
         "DELETE FROM " + GalaxyConstants.TABLENAME_FITTINGS + " " +
         "WHERE ship_id = ?;"
     );
     
+    // Delete the ship with the given ship_id
     public final SQLStmt deleteShip = new SQLStmt(
         "DELETE FROM " + GalaxyConstants.TABLENAME_SHIPS + " " +
         "WHERE ship_id = ?;"
@@ -55,6 +57,7 @@ public class Combat extends Procedure {
         "GROUP BY " + GalaxyConstants.TABLENAME_SHIPS + ".ship_id;"
     );
     
+    // Update the ship with the given ship_ids information
     public final SQLStmt updateShip = new SQLStmt(
         "UPDATE " + GalaxyConstants.TABLENAME_SHIPS + " " +
         "SET health_points = ? WHERE ship_id = ?;"
@@ -101,7 +104,7 @@ public class Combat extends Procedure {
         group2Avg = groupDmgs.second / groupSize;
         for (int i = 0; i < ships.size(); i++) {
             Ship ship = ships.get(i);
-            if (i % 2 == 0) {
+            if (i % 2 == 0) { // TODO should damage be percent instead?
                 ship.healthPoints -= Math.max(0, group2Avg - ship.defence); 
             } else {
                 ship.healthPoints -= Math.max(0, group1Avg - ship.defence);
@@ -109,7 +112,6 @@ public class Combat extends Procedure {
         }
     }
     
-    // TODO make avgs?
     /**
      * Divides the ships into two groups, and sum their damage
      * 
