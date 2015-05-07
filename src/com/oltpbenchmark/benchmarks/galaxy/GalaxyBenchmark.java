@@ -2,6 +2,8 @@ package com.oltpbenchmark.benchmarks.galaxy;
 
 import java.io.IOException;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -11,8 +13,13 @@ import java.lang.Math;
 import com.oltpbenchmark.WorkloadConfiguration;
 import com.oltpbenchmark.api.BenchmarkModule;
 import com.oltpbenchmark.api.Loader;
+import com.oltpbenchmark.api.SQLStmt;
 import com.oltpbenchmark.api.Worker;
 import com.oltpbenchmark.benchmarks.galaxy.procedures.Move;
+import com.oltpbenchmark.benchmarks.galaxy.util.ActivityRegion;
+import com.oltpbenchmark.benchmarks.galaxy.util.SolarSystem;
+
+import org.apache.commons.lang3.tuple.ImmutableTriple;
 
 /**
  * A class, which handles the workers, the loader and the config
@@ -32,8 +39,10 @@ public class GalaxyBenchmark extends BenchmarkModule {
         List<Worker> workers = new ArrayList<Worker>();
         int numWorkers = workConf.getTerminals();
 
+        ArrayList<ActivityRegion> regions = generateActivityRegions(numWorkers);
+
         for (int i = 0; i < numWorkers; ++i) {
-            workers.add(new GalaxyWorker(this, i));
+            workers.add(new GalaxyWorker(this, i, regions));
         }
         return workers;
     }
@@ -48,10 +57,16 @@ public class GalaxyBenchmark extends BenchmarkModule {
        return Move.class.getPackage();
     }
 
-    private final SQLStmt querySolarSystems= "SELECT * FROM " +
-        GalaxyConstants.TABLENAME_SOLARSYSTEMS + ";";
+    private final SQLStmt querySolarSystems= new SQLStmt("SELECT * FROM " +
+        GalaxyConstants.TABLENAME_SOLARSYSTEMS + ";"
+        );
 
 
+    /**
+     * Generates ActivityRegions for the benchmark
+     * @param numWorkers number of workers in use
+     * @return an ArrayList of ActivityRegions.
+     */
     private ArrayList<ActivityRegion> generateActivityRegions(int numWorkers) {
         PreparedStatement ps = getPreparedStatement(conn, querySolarSystems);
         ResultSet rs = ps.executeQuery();
@@ -67,29 +82,34 @@ public class GalaxyBenchmark extends BenchmarkModule {
         } finally {
             rs.close();
         }
-        int regionsPerSolarSystems = 2 * numWorkers / solarSystems.size();
-        for (solar : solarSystems) {
-            regions.addAll(getSolarRegions(regionsPerSolarSystem, solar);
+        int regionsPerSolarSystem = 2 * numWorkers / solarSystems.size();
+        for (SolarSystem solar : solarSystems) {
+            regions.addAll(getSolarRegions(regionsPerSolarSystem, solar));
         }
-
+        return regions;
     }
 
-    private getSolarRegions(int numRegions, SolarSystem solar) {
+    /**
+     * Generates ActivityRegions for a single solarsystem.
+     * @param numRegions number of regions for the solar system
+     * @param solar the SolarSystem object for the solar system
+     */
+    private ArrayList<ActivityRegion> getSolarRegions(int numRegions, SolarSystem solar) {
         ArrayList<ActivityRegion> regions = new ArrayList<ActivityRegion>();
-        long sizeX = solar.xMax / Math.max(1, numRegions / 2);
-        long sizeY = solar.yMax / Math.max(1, numRegions / 2);
-        long sizeZ = solar.zMax / Math.max(1, numRegions / 2);
+        Long sizeX = solar.xMax / Math.max(1, numRegions / 2);
+        Long sizeY = solar.yMax / Math.max(1, numRegions / 2);
+        Long sizeZ = solar.zMax / Math.max(1, numRegions / 2);
         Random rng = new Random();
-        for (int i = 0; i < numRegions, i++) {
-            xPos = rng.nextInt(solar.xMax - sizeX);
-            yPos = rng.nextInt(solar.yMax - sizeY);
-            zPos = rng.nextInt(solar.zMax - sizeZ);
+        for (int i = 0; i < numRegions; i++) {
+            Long xPos = rng.nextLong() % (solar.xMax - sizeX);
+            Long yPos = rng.nextLong() % (solar.yMax - sizeY);
+            Long zPos = rng.nextLong() % (solar.zMax - sizeZ);
 
-            ImmutableTriple<long, long, long> minPos =
-                new ImmutableTriple<long, long, long> (xPos, yPos, zPos);
-            ImmutableTriple<long, long, long> maxPos =
-                new ImmutableTriple<long, long, long> (xPos + sizeX, yPos + sizeY, zPos + sizeZ);
-            ArrayList<int> probabilityVector = getProbabilityVector(minPos, maxPos, solar.securityLevel);
+            ImmutableTriple<Long, Long, Long> minPos =
+                new ImmutableTriple<Long, Long, Long> (xPos, yPos, zPos);
+            ImmutableTriple<Long, Long, Long> maxPos =
+                new ImmutableTriple<Long, Long, Long> (xPos + sizeX, yPos + sizeY, zPos + sizeZ);
+            ArrayList<Integer> probabilityVector = getProbabilityVector(minPos, maxPos, solar.securityLevel);
 
             regions.add(new ActivityRegion(solar.solarSystemId, minPos, maxPos, probabilityVector));
         }
@@ -97,8 +117,44 @@ public class GalaxyBenchmark extends BenchmarkModule {
         return regions;
     }
 
-    private getProbabilityVector(ImmutableTriple<long, long, long> minPos,
-            ImmutableTriple<long, long, long> maxPos, int securityLevel) {
+    private ArrayList<Integer> getProbabilityVector(ImmutableTriple<Long, Long, Long> minPos,
+            ImmutableTriple<Long, Long, Long> maxPos, int securityLevel) {
+        ArrayList probabilityVector = new ArrayList<Integer>();
+    	for (TransactionType transType : workConf.getTransTypes()) {
+    		switch(transType.getName()) {
+    		case "Combat":
+    			probabilityVector.add(getCombatProb(securityLevel));
+                        break;
+                case "Move":
+                        probabilityVector.add(25);
+                        break;
+                case "Idle":
+                        probabilityVector.add(getIdleProb(securityLevel));
+                        break;
+                default:
+                        break;
+    		}
+    	}
+        return probabilityVector;
+    }
 
+    private Integer getCombatProb(int securityLevel) {
+        if (securityLevel <= 0) {
+            return 30;
+        } else if (securityLevel > 0 && securityLevel <= 4) {
+            return 20;
+        } else {
+            return 10;
+        }
+    }
 
+    private Integer getIdleProb(int securityLevel) {
+        if (securityLevel <= 0) {
+            return 1;
+        } else if (securityLevel > 0 && securityLevel <= 4) {
+            return 5;
+        } else {
+            return 10;
+        }
+    }
 }

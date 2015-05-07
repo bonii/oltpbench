@@ -1,18 +1,19 @@
 package com.oltpbenchmark.benchmarks.galaxy.util;
 
-import org.commons.lang3.tuple.ImmutableTriple;
+import org.apache.commons.lang3.tuple.ImmutableTriple;
+import java.util.ArrayList;
 
 public class ActivityRegion {
     public final int solarSystemId;
-    public final ImmutableTriple startPos;
-    public final ImmutabelTriple endPos;
-    public final ArrayList<int> probabilityVector;
+    public final ImmutableTriple minPos;
+    public final ImmutableTriple maxPos;
+    public final ArrayList<Integer> probabilityVector;
 
-    public ActivityRegion(int solarSystemId, ImmutableTriple startPos,
-            ImmutableTriple endPos, ArrayList<int> probabilityVector) {
+    public ActivityRegion(int solarSystemId, ImmutableTriple minPos,
+            ImmutableTriple maxPos, ArrayList<Integer> probabilityVector) {
         this.solarSystemId  = solarSystemId;
-        this.startPos       = startPos;
-        this.endPos         = endPos;
+        this.minPos       = minPos;
+        this.maxPos         = maxPos;
         this.probabilityVector = probabilityVector;
     }
 }

@@ -1,4 +1,4 @@
-package com.oltpbench.benchmarks.galaxy.util;
+package com.oltpbenchmark.benchmarks.galaxy.util;
 
 public class SolarSystem {
     public final int solarSystemId;
@@ -14,3 +14,4 @@ public class SolarSystem {
         this.yMax           = yMax;
         this.zMax           = zMax;
     }
+}
