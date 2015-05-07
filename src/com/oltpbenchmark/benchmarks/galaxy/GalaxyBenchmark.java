@@ -6,6 +6,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 import java.lang.Math;
@@ -14,6 +15,7 @@ import com.oltpbenchmark.WorkloadConfiguration;
 import com.oltpbenchmark.api.BenchmarkModule;
 import com.oltpbenchmark.api.Loader;
 import com.oltpbenchmark.api.SQLStmt;
+import com.oltpbenchmark.api.TransactionType;
 import com.oltpbenchmark.api.Worker;
 import com.oltpbenchmark.benchmarks.galaxy.procedures.Move;
 import com.oltpbenchmark.benchmarks.galaxy.util.ActivityRegion;
@@ -117,25 +119,25 @@ public class GalaxyBenchmark extends BenchmarkModule {
         return regions;
     }
 
-    private ArrayList<Integer> getProbabilityVector(ImmutableTriple<Long, Long, Long> minPos,
+    private HashMap<String, Integer> getProbabilityVector(ImmutableTriple<Long, Long, Long> minPos,
             ImmutableTriple<Long, Long, Long> maxPos, int securityLevel) {
-        ArrayList probabilityVector = new ArrayList<Integer>();
+    	HashMap<String, Integer> probVec = new HashMap<String, Integer>();
     	for (TransactionType transType : workConf.getTransTypes()) {
     		switch(transType.getName()) {
     		case "Combat":
-    			probabilityVector.add(getCombatProb(securityLevel));
-                        break;
-                case "Move":
-                        probabilityVector.add(25);
-                        break;
-                case "Idle":
-                        probabilityVector.add(getIdleProb(securityLevel));
-                        break;
-                default:
-                        break;
+    			probVec.put("combat", getCombatProb(securityLevel));
+                break;
+    		case "Move":
+                probVec.put("move", 25);
+                break;
+            case "Idle":
+            	probVec.put("idle", getIdleProb(securityLevel));
+                break;
+            default:
+                break;
     		}
     	}
-        return probabilityVector;
+        return probVec;
     }
 
     private Integer getCombatProb(int securityLevel) {

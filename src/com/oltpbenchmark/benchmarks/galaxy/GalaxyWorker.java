@@ -1,6 +1,7 @@
 package com.oltpbenchmark.benchmarks.galaxy;
 
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.Random;
 import java.util.ArrayList;
 
@@ -11,7 +12,6 @@ import com.oltpbenchmark.benchmarks.galaxy.procedures.Combat;
 import com.oltpbenchmark.benchmarks.galaxy.procedures.Move;
 import com.oltpbenchmark.benchmarks.galaxy.util.ActivityRegion;
 import com.oltpbenchmark.types.TransactionStatus;
-
 
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 
@@ -45,21 +45,41 @@ public class GalaxyWorker extends Worker {
             chooseRegion();
             this.i = 0;
         }
-
-        Combat proc = getProcedure(Combat.class);
-        assert(proc != null);
-        proc.run(conn, 6, new ImmutableTriple<Long, Long, Long>(0L, 0L, 0L),
-                new ImmutableTriple<Long, Long, Long>(100L * GalaxyConstants.AU, 100L * GalaxyConstants.AU, 100L * GalaxyConstants.AU), rng);
-        conn.commit();
+        int k = this.rng.nextInt(this.totalScore);
+        HashMap<String, Integer> probVec = this.region.probabilityVector;
+        if (k < probVec.get("combat")) {
+        	Combat proc = getProcedure(Combat.class);
+        	assert(proc != null);
+        	proc.run(conn, 6, this.region.minPos, this.region.maxPos, new Random());
+        	conn.commit();
+        	return TransactionStatus.SUCCESS;
+        }
+        k -= probVec.get("combat");
+        if (k < probVec.get("idle")) {
+        	Idle proc = getProcedure(Move.class);
+        	assert(proc != null);
+        	proc.run(conn, 6, this.region.minPos, this.region.maxPos, new Random());
+        	conn.commit();
+        	return TransactionStatus.SUCCESS;
+        }
+        k -= probVec.get("idle");
+        if (k < probVec.get("move")) {
+        	Move proc = getProcedure(Move.class);
+        	assert(proc != null);
+        	proc.run(conn, 6, this.region.minPos, this.region.maxPos, new Random());
+        	conn.commit();
+        	return TransactionStatus.SUCCESS;
+        }
         i++;
-        return TransactionStatus.SUCCESS;
+        return TransactionStatus.RETRY;
     }
 
     private int getTotalScore(ArrayList<Integer> probabilityVector) {
         int total = 0;
-        for (Integer p : this.region.probabilityVector) {
-            total += p;
-        }
+        HashMap<String, Integer> probVec = this.region.probabilityVector;
+        total += probVec.get("combat");
+        total += probVec.get("move");
+        total += probVec.get("idle");
         return total;
     }
 
@@ -69,7 +89,5 @@ public class GalaxyWorker extends Worker {
         this.totalScore = getTotalScore();
     }
 
-    private int getProc() {
-        int k = rng.nextInt(workConf.getTransTypes().size());
-    }
+
 }
