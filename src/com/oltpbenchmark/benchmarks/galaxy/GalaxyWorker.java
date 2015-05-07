@@ -8,8 +8,7 @@ import java.util.ArrayList;
 import com.oltpbenchmark.api.Procedure.UserAbortException;
 import com.oltpbenchmark.api.TransactionType;
 import com.oltpbenchmark.api.Worker;
-import com.oltpbenchmark.benchmarks.galaxy.procedures.Combat;
-import com.oltpbenchmark.benchmarks.galaxy.procedures.Move;
+import com.oltpbenchmark.benchmarks.galaxy.procedures.*;
 import com.oltpbenchmark.benchmarks.galaxy.util.ActivityRegion;
 import com.oltpbenchmark.types.TransactionStatus;
 
@@ -74,7 +73,7 @@ public class GalaxyWorker extends Worker {
         return TransactionStatus.RETRY;
     }
 
-    private int getTotalScore(ArrayList<Integer> probabilityVector) {
+    private int getTotalScore() {
         int total = 0;
         HashMap<String, Integer> probVec = this.region.probabilityVector;
         total += probVec.get("combat");

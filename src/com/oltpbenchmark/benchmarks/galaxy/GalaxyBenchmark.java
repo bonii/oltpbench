@@ -41,7 +41,12 @@ public class GalaxyBenchmark extends BenchmarkModule {
         List<Worker> workers = new ArrayList<Worker>();
         int numWorkers = workConf.getTerminals();
 
-        ArrayList<ActivityRegion> regions = generateActivityRegions(numWorkers);
+        ArrayList<ActivityRegion> regions = new ArrayList<ActivityRegion>(); // init because of try....
+        try {
+            regions = generateActivityRegions(numWorkers);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
 
         for (int i = 0; i < numWorkers; ++i) {
             workers.add(new GalaxyWorker(this, i, regions));
@@ -59,18 +64,21 @@ public class GalaxyBenchmark extends BenchmarkModule {
        return Move.class.getPackage();
     }
 
-    private final SQLStmt querySolarSystems= new SQLStmt("SELECT * FROM " +
+    private final String querySolarSystems= "SELECT * FROM " +
         GalaxyConstants.TABLENAME_SOLARSYSTEMS + ";"
-        );
+        ;
 
 
     /**
      * Generates ActivityRegions for the benchmark
      * @param numWorkers number of workers in use
      * @return an ArrayList of ActivityRegions.
+     * @throws SQLException 
      */
-    private ArrayList<ActivityRegion> generateActivityRegions(int numWorkers) {
-        PreparedStatement ps = getPreparedStatement(conn, querySolarSystems);
+    private ArrayList<ActivityRegion> generateActivityRegions(int numWorkers) 
+            throws SQLException {
+        Connection conn = this.getLastConnection();
+        PreparedStatement ps = conn.prepareStatement(querySolarSystems);
         ResultSet rs = ps.executeQuery();
         ArrayList<SolarSystem> solarSystems = new ArrayList<SolarSystem>();
         ArrayList<ActivityRegion> regions = new ArrayList<ActivityRegion>();
@@ -111,7 +119,7 @@ public class GalaxyBenchmark extends BenchmarkModule {
                 new ImmutableTriple<Long, Long, Long> (xPos, yPos, zPos);
             ImmutableTriple<Long, Long, Long> maxPos =
                 new ImmutableTriple<Long, Long, Long> (xPos + sizeX, yPos + sizeY, zPos + sizeZ);
-            ArrayList<Integer> probabilityVector = getProbabilityVector(minPos, maxPos, solar.securityLevel);
+            HashMap<String, Integer> probabilityVector = getProbabilityVector(minPos, maxPos, solar.securityLevel);
 
             regions.add(new ActivityRegion(solar.solarSystemId, minPos, maxPos, probabilityVector));
         }
@@ -123,7 +131,11 @@ public class GalaxyBenchmark extends BenchmarkModule {
             ImmutableTriple<Long, Long, Long> maxPos, int securityLevel) {
     	HashMap<String, Integer> probVec = new HashMap<String, Integer>();
     	for (TransactionType transType : workConf.getTransTypes()) {
-    		switch(transType.getName()) {
+    	    if (transType.getName().equals("combat")) probVec.put("combat", getCombatProb(securityLevel));
+    	    else if (transType.getName().equals("move")) probVec.put("move", 25);
+    	    else if (transType.getName().equals("idle")) probVec.put("idle", getIdleProb(securityLevel));
+    	    // String switching only allowed in java 1.7 or newer :/
+    		/*switch(transType.getName()) {
     		case "Combat":
     			probVec.put("combat", getCombatProb(securityLevel));
                 break;
@@ -135,7 +147,7 @@ public class GalaxyBenchmark extends BenchmarkModule {
                 break;
             default:
                 break;
-    		}
+    		}*/
     	}
         return probVec;
     }
