@@ -77,7 +77,8 @@ public class GalaxyBenchmark extends BenchmarkModule {
      */
     private ArrayList<ActivityRegion> generateActivityRegions(int numWorkers) 
             throws SQLException {
-        Connection conn = this.getLastConnection();
+        Connection conn = getLastConnection();
+        if (conn == null) conn = makeConnection();
         PreparedStatement ps = conn.prepareStatement(querySolarSystems);
         ResultSet rs = ps.executeQuery();
         ArrayList<SolarSystem> solarSystems = new ArrayList<SolarSystem>();
@@ -131,9 +132,9 @@ public class GalaxyBenchmark extends BenchmarkModule {
             ImmutableTriple<Long, Long, Long> maxPos, int securityLevel) {
     	HashMap<String, Integer> probVec = new HashMap<String, Integer>();
     	for (TransactionType transType : workConf.getTransTypes()) {
-    	    if (transType.getName().equals("combat")) probVec.put("combat", getCombatProb(securityLevel));
-    	    else if (transType.getName().equals("move")) probVec.put("move", 25);
-    	    else if (transType.getName().equals("idle")) probVec.put("idle", getIdleProb(securityLevel));
+    	    if (transType.getName().equals("Combat")) probVec.put("combat", getCombatProb(securityLevel));
+    	    else if (transType.getName().equals("Move")) probVec.put("move", 25);
+    	    else if (transType.getName().equals("Idle")) probVec.put("idle", getIdleProb(securityLevel));
     	    // String switching only allowed in java 1.7 or newer :/
     		/*switch(transType.getName()) {
     		case "Combat":

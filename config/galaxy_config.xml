@@ -9,15 +9,15 @@
     <password>test</password>
     <isolation>TRANSACTION_READ_COMMITTED</isolation>
 
-    <scalefactor>10</scalefactor>
+    <scalefactor>1</scalefactor>
 
     <!-- The workload -->
-    <terminals>1</terminals>
+    <terminals>10</terminals>
     <works>
         <work>
           <time>10</time>
           <rate>1</rate>
-          <weights>1</weights>
+          <weights>1,1,1</weights>
           <serial>true</serial>
         </work>
     </works>
@@ -25,8 +25,13 @@
     <!-- Voter Procedures declaration -->
     <transactiontypes>
         <transactiontype>
-        	
         	<name>Combat</name>
+        </transactiontype>
+        <transactiontype>
+        	<name>Idle</name>
+        </transactiontype>
+        <transactiontype>
+        	<name>Move</name>
         </transactiontype>
     </transactiontypes>
 </parameters>
