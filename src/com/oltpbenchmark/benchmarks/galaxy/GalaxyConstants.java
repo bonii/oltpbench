@@ -35,7 +35,7 @@ package com.oltpbenchmark.benchmarks.galaxy;
 public abstract class GalaxyConstants {
 
     // Ships
-    public static final int NUM_SHIPS = 100;
+    public static final int NUM_SHIPS = 1000;
     public static final int VISIBLE_RANGE = 250000;
     
     // Solar systems

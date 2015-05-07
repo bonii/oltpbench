@@ -4,7 +4,7 @@
     <!-- Connection details -->
     <dbtype>postgres</dbtype>
     <driver>org.postgresql.Driver</driver>
-    <DBUrl>jdbc:postgresql://127.0.0.1:5432/galaxy</DBUrl>
+    <DBUrl>jdbc:postgresql://192.168.0.11:5432/galaxy</DBUrl>
     <username>carljohnsen</username>
     <password>test</password>
     <isolation>TRANSACTION_READ_COMMITTED</isolation>
@@ -12,10 +12,10 @@
     <scalefactor>1</scalefactor>
 
     <!-- The workload -->
-    <terminals>10</terminals>
+    <terminals>2</terminals>
     <works>
         <work>
-          <time>10</time>
+          <time>60</time>
           <rate>1</rate>
           <weights>1,1,1</weights>
           <serial>true</serial>

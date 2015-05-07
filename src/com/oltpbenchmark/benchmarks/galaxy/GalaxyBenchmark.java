@@ -112,9 +112,12 @@ public class GalaxyBenchmark extends BenchmarkModule {
         Long sizeZ = solar.zMax / Math.max(1, numRegions / 2);
         Random rng = new Random();
         for (int i = 0; i < numRegions; i++) {
-            Long xPos = rng.nextLong() % (solar.xMax - sizeX);
+           /*Long xPos = rng.nextLong() % (solar.xMax - sizeX);
             Long yPos = rng.nextLong() % (solar.yMax - sizeY);
-            Long zPos = rng.nextLong() % (solar.zMax - sizeZ);
+            Long zPos = rng.nextLong() % (solar.zMax - sizeZ);*/
+            Long xPos = GalaxyUtil.nextLong(rng, solar.xMax - sizeX);
+            Long yPos = GalaxyUtil.nextLong(rng, solar.yMax - sizeY);
+            Long zPos = GalaxyUtil.nextLong(rng, solar.zMax - sizeZ);
 
             ImmutableTriple<Long, Long, Long> minPos =
                 new ImmutableTriple<Long, Long, Long> (xPos, yPos, zPos);

@@ -46,18 +46,22 @@ public class GalaxyWorker extends Worker {
         }
         int k = this.rng.nextInt(this.totalScore);
         HashMap<String, Integer> probVec = this.region.probabilityVector;
+        long returncode;
         if (k < probVec.get("combat")) {
         	Combat proc = getProcedure(Combat.class);
         	assert(proc != null);
-        	proc.run(conn, 6, this.region.minPos, this.region.maxPos, new Random());
+        	returncode = proc.run(conn, 6, this.region.minPos, this.region.maxPos, new Random());
         	conn.commit();
-        	return TransactionStatus.SUCCESS;
+        	if (returncode == Combat.COMBAT_NOT_ENOUGH_SHIPS)
+        	    return TransactionStatus.USER_ABORTED;
+        	else
+        	    return TransactionStatus.SUCCESS;
         }
         k -= probVec.get("combat");
         if (k < probVec.get("idle")) {
         	Idle proc = getProcedure(Idle.class);
         	assert(proc != null);
-        	proc.run(conn, 6, this.region.minPos, this.region.maxPos);
+        	returncode = proc.run(conn, 6, this.region.minPos, this.region.maxPos);
         	conn.commit();
         	return TransactionStatus.SUCCESS;
         }
@@ -65,9 +69,12 @@ public class GalaxyWorker extends Worker {
         if (k < probVec.get("move")) {
         	Move proc = getProcedure(Move.class);
         	assert(proc != null);
-        	proc.run(conn, 6, this.region.minPos, this.region.maxPos, new Random());
+        	returncode = proc.run(conn, 6, this.region.minPos, this.region.maxPos, new Random());
         	conn.commit();
-        	return TransactionStatus.SUCCESS;
+        	if (returncode == Move.MOVE_NO_SHIPS)
+        	    return TransactionStatus.USER_ABORTED;
+        	else
+        	    return TransactionStatus.SUCCESS;
         }
         i++;
         return TransactionStatus.RETRY;
