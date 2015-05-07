@@ -55,9 +55,9 @@ public class GalaxyWorker extends Worker {
         }
         k -= probVec.get("combat");
         if (k < probVec.get("idle")) {
-        	Idle proc = getProcedure(Move.class);
+        	Idle proc = getProcedure(Idle.class);
         	assert(proc != null);
-        	proc.run(conn, 6, this.region.minPos, this.region.maxPos, new Random());
+        	proc.run(conn, 6, this.region.minPos, this.region.maxPos);
         	conn.commit();
         	return TransactionStatus.SUCCESS;
         }
