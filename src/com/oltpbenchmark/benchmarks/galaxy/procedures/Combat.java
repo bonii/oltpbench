@@ -39,7 +39,7 @@ public class Combat extends Procedure {
     public final SQLStmt queryShipsInRange = new SQLStmt(
         "SELECT ships.ship_id, health_points, " +
         "SUM(CASE WHEN fitting_type = " + GalaxyConstants.FITTING_TYPE_OFFENSIVE +
-        " THEN fitting_value ELSE 0 END) as offensive," +
+        " THEN fitting_value ELSE 0 END) as offensive, " +
         "SUM(CASE WHEN fitting_type = " + GalaxyConstants.FITTING_TYPE_DEFENSIVE +
         " THEN fitting_value ELSE 0 END) as defensive " +
         "FROM " + GalaxyConstants.TABLENAME_SHIPS + " " +

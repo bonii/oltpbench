@@ -50,9 +50,9 @@ public class GalaxyWorker extends Worker {
         if (k < probVec.get("combat")) {
         	Combat proc = getProcedure(Combat.class);
         	assert(proc != null);
-        	returncode = proc.run(conn, 6, this.region.minPos, this.region.maxPos, new Random());
-        	conn.commit();
-        	if (returncode == Combat.COMBAT_NOT_ENOUGH_SHIPS)
+            returncode = proc.run(conn, this.region.solarSystemId, this.region.minPos, this.region.maxPos, new Random());
+            conn.commit();
+        	if (returncode != Combat.COMBAT_SUCCESSFUL)
         	    return TransactionStatus.USER_ABORTED;
         	else
         	    return TransactionStatus.SUCCESS;
@@ -61,7 +61,7 @@ public class GalaxyWorker extends Worker {
         if (k < probVec.get("idle")) {
         	Idle proc = getProcedure(Idle.class);
         	assert(proc != null);
-        	returncode = proc.run(conn, 6, this.region.minPos, this.region.maxPos);
+        	returncode = proc.run(conn, this.region.solarSystemId, this.region.minPos, this.region.maxPos);
         	conn.commit();
         	return TransactionStatus.SUCCESS;
         }
@@ -69,9 +69,9 @@ public class GalaxyWorker extends Worker {
         if (k < probVec.get("move")) {
         	Move proc = getProcedure(Move.class);
         	assert(proc != null);
-        	returncode = proc.run(conn, 6, this.region.minPos, this.region.maxPos, new Random());
-        	conn.commit();
-        	if (returncode == Move.MOVE_NO_SHIPS)
+            returncode = proc.run(conn, this.region.solarSystemId, this.region.minPos, this.region.maxPos, new Random());
+            conn.commit();
+        	if (returncode != Move.MOVE_SUCCESSFUL)
         	    return TransactionStatus.USER_ABORTED;
         	else
         	    return TransactionStatus.SUCCESS;

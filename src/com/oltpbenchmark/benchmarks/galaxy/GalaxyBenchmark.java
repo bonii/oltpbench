@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Random;
 import java.lang.Math;
 
+import com.oltpbenchmark.DBWorkload;
 import com.oltpbenchmark.WorkloadConfiguration;
 import com.oltpbenchmark.api.BenchmarkModule;
 import com.oltpbenchmark.api.Loader;
@@ -22,12 +23,15 @@ import com.oltpbenchmark.benchmarks.galaxy.util.ActivityRegion;
 import com.oltpbenchmark.benchmarks.galaxy.util.SolarSystem;
 
 import org.apache.commons.lang3.tuple.ImmutableTriple;
+import org.apache.log4j.Logger;
 
 /**
  * A class, which handles the workers, the loader and the config
  */
 public class GalaxyBenchmark extends BenchmarkModule {
 
+    private static final Logger LOG = Logger.getLogger(GalaxyBenchmark.class);
+    
     /**
      * Creates a new instance of the GalaxyBenchmark class
      * @param workConf The configuration the benchmark will run with
@@ -45,7 +49,7 @@ public class GalaxyBenchmark extends BenchmarkModule {
         try {
             regions = generateActivityRegions(numWorkers);
         } catch (SQLException e) {
-            e.printStackTrace();
+            LOG.error("Unexpected error when starting benchmark: ", e);
         }
 
         for (int i = 0; i < numWorkers; ++i) {
@@ -107,9 +111,9 @@ public class GalaxyBenchmark extends BenchmarkModule {
      */
     private ArrayList<ActivityRegion> getSolarRegions(int numRegions, SolarSystem solar) {
         ArrayList<ActivityRegion> regions = new ArrayList<ActivityRegion>();
-        Long sizeX = solar.xMax / Math.max(1, numRegions / 2);
-        Long sizeY = solar.yMax / Math.max(1, numRegions / 2);
-        Long sizeZ = solar.zMax / Math.max(1, numRegions / 2);
+        Long sizeX = solar.xMax / Math.max(2, numRegions / 2);
+        Long sizeY = solar.yMax / Math.max(2, numRegions / 2);
+        Long sizeZ = solar.zMax / Math.max(2, numRegions / 2);
         Random rng = new Random();
         for (int i = 0; i < numRegions; i++) {
            /*Long xPos = rng.nextLong() % (solar.xMax - sizeX);
