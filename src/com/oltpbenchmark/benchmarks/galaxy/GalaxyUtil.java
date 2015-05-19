@@ -4,6 +4,7 @@ import java.util.Random;
 
 public class GalaxyUtil {
     
+    // stackoverflow.com/questions/2546078/java-random-long-number-in-0-x-n-range
     public final static long nextLong(final Random rng, final long n) {
         long bits, val;
         do {
