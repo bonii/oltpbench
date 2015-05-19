@@ -37,28 +37,28 @@ public abstract class GalaxyConstants {
     // Ships
     public static final int NUM_SHIPS = 1000;
     public static final int VISIBLE_RANGE = 250000;
-    
+
     // Solar systems
     public static final long AU = 149600000000L; // According to wolfram
-    public static final long MIN_SYSTEM_SIZE = 1 * AU;// TODO * AU;
-    public static final long MAX_SYSTEM_SIZE = 10000 * AU;// TODO * AU;
+    public static final long MIN_SYSTEM_SIZE = 1 * AU;
+    public static final long MAX_SYSTEM_SIZE = 10000 * AU;
     public static final int MIN_SECURITY = -10;
     public static final int MAX_SECURITY = 10;
     public static final int NUM_SOLAR_SYSTEMS = 1;
-    
+
     // Classes
     public static final int NUM_CLASSES = 5;
-    public static final int MIN_REACHABILITY = 100;
-    public static final int MAX_REACHABILITY = 1000;
-    public static final int MIN_HEALTH = 1000;
-    public static final int MAX_HEALTH = 100000;
-    public static final int MIN_FITTINGS = 1;
-    public static final int MAX_FITTINGS = 10;
+    public static final long MIN_REACHABILITY = 100;
+    public static final long MAX_REACHABILITY = AU / 2;
+    public static final int MIN_HEALTH = 500;
+    public static final int MAX_HEALTH = 2200000;
+    public static final int MIN_FITTINGS = 0;
+    public static final int MAX_FITTINGS = 21;
     // TODO random names maybe?
     public static final String[] classes = new String[] {
-        "Missile boat", "Torpedo boat", "Minesweeper", 
+        "Missile boat", "Torpedo boat", "Minesweeper",
         "Medium landing craft", "Landing Ship Tank" };
-    
+
     // Fittings
     public static final int NUM_FITTING = 50;
     public static final int NUM_FITTING_TYPES = 2;
@@ -67,8 +67,8 @@ public abstract class GalaxyConstants {
     public static final int MAX_FITTING_VALUE = 1000;
 
     // Runtime variables
-    public static final int MAX_MOVE = 110000; 
-    
+    public static final int MAX_MOVE = 110000;
+
     // Table names
     public static final String TABLENAME_SHIPS = "ships";
     public static final String TABLENAME_CLASSES = "classes";
