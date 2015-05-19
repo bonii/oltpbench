@@ -82,6 +82,8 @@ public class GalaxyLoader extends Loader {
         ps = this.conn.prepareStatement(SQLUtil.getInsertSQL(tbl, escapeNames));
         ArrayList<ImmutableTriple<Long, Long, Long>> systemMax =
                 new ArrayList<ImmutableTriple<Long, Long, Long>>();
+        int min_sec;
+        int max_sec;
         for (int i = 0; i < numSolarSystems; i++) {
             // Generate values
             long xMax = GalaxyUtil.randLong(
@@ -93,9 +95,18 @@ public class GalaxyLoader extends Loader {
             long zMax = GalaxyUtil.randLong(
                     GalaxyConstants.MIN_SYSTEM_SIZE,
                     GalaxyConstants.MAX_SYSTEM_SIZE, rng);
-            int security = GalaxyUtil.randInt(
-                    GalaxyConstants.MIN_SECURITY,
-                    GalaxyConstants.MAX_SECURITY, rng);
+            int tmp = rng.nextInt(100);
+            if (tmp > 17) {
+                min_sec = GalaxyConstants.HIGH_MIN_SECURITY;
+                max_sec = GalaxyConstants.HIGH_MAX_SECURITY;
+            } else if(tmp > 24) {
+                min_sec = GalaxyConstants.LOW_MIN_SECURITY;
+                max_sec = GalaxyConstants.LOW_MAX_SECURITY;
+            } else {
+                min_sec = GalaxyConstants.NULL_MIN_SECURITY;
+                max_sec = GalaxyConstants.NULL_MAX_SECURITY;
+            }
+            int security = GalaxyUtil.randInt(min_sec, max_sec, rng);
             systemMax.add(new ImmutableTriple<Long, Long, Long>(xMax, yMax, zMax));
 
             ps.setInt(1, i + 1); // Solarsystem ID(ssid)
