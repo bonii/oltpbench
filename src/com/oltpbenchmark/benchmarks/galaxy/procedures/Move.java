@@ -13,7 +13,7 @@ import com.oltpbenchmark.api.SQLStmt;
 import com.oltpbenchmark.benchmarks.galaxy.GalaxyConstants;
 import com.oltpbenchmark.benchmarks.galaxy.util.Ship;
 
-import com.oltpbenchmark.util.Triple;
+import org.apache.commons.lang3.tuple.ImmutableTriple;
 
 /**
  * A class containing the Move procedure
@@ -25,7 +25,7 @@ public class Move extends Procedure {
     public static final long MOVE_NO_SHIPS = 1;
     
     // Solar system information
-    private Triple<Long, Long, Long> systemMax;
+    private ImmutableTriple<Long, Long, Long> systemMax;
 
     // Get ship positions, that are within range
     public final SQLStmt getShips = new SQLStmt(
@@ -68,8 +68,8 @@ public class Move extends Procedure {
      * @param moveOffset The offset that the ship is trying to move
      * @return An triple, containing the new position
      */
-    private Triple<Long, Long, Long> capToReachability(
-            Ship ship, Triple<Integer, Integer, Integer> moveOffset) {
+    private ImmutableTriple<Long, Long, Long> capToReachability(
+            Ship ship, ImmutableTriple<Integer, Integer, Integer> moveOffset) {
         int offsetX;
         int offsetY;
         int offsetZ;
@@ -95,7 +95,7 @@ public class Move extends Procedure {
         long positionX = Math.max(Math.min(systemMax.left, ship.position.left + offsetX), 0);
         long positionY = Math.max(Math.min(systemMax.middle, ship.position.middle + offsetY), 0);
         long positionZ = Math.max(Math.min(systemMax.right, ship.position.right + offsetZ), 0);
-        return new Triple<Long, Long, Long>(positionX, positionY, positionZ);
+        return new ImmutableTriple<Long, Long, Long>(positionX, positionY, positionZ);
     }
     
     /**
@@ -108,16 +108,16 @@ public class Move extends Procedure {
      * @return A Triple containing the new position, or null if there were none
      * @throws SQLException
      */
-    private Triple<Long, Long, Long> getFreePosition(Connection conn, 
-            int solarSystemId, Triple<Long, Long, Long> position, 
+    private ImmutableTriple<Long, Long, Long> getFreePosition(Connection conn, 
+            int solarSystemId, ImmutableTriple<Long, Long, Long> position, 
             Random rng) throws SQLException {
         
-        ArrayList<Triple<Long, Long, Long>> positions =
-                new ArrayList<Triple<Long, Long, Long>>();
+        ArrayList<ImmutableTriple<Long, Long, Long>> positions =
+                new ArrayList<ImmutableTriple<Long, Long, Long>>();
         for (long i = position.left-1; i < position.left+2; i++) {
             for (long j = position.middle-1; j < position.middle+2; j++) {
                 for (long k = position.right-1; k < position.right+2; k++) {
-                    positions.add(new Triple<Long, Long, Long>(i,j,k));
+                    positions.add(new ImmutableTriple<Long, Long, Long>(i,j,k));
                 }
             }
         }
@@ -132,7 +132,7 @@ public class Move extends Procedure {
         ResultSet rs = ps.executeQuery();
         try {
             while (rs.next()) {
-                positions.remove(new Triple<Long, Long, Long>(
+                positions.remove(new ImmutableTriple<Long, Long, Long>(
                         rs.getLong(1), rs.getLong(2), rs.getLong(3)
                 ));
             }
@@ -171,9 +171,9 @@ public class Move extends Procedure {
             offsetZ *= (rng.nextBoolean()) ? -1 : 1;
             
             // Cap to reachability and check if position is free. Remove if not
-            Triple<Long, Long, Long> newPosition = 
+            ImmutableTriple<Long, Long, Long> newPosition = 
                     capToReachability(ship, 
-                            new Triple<Integer, Integer, Integer>(offsetX, offsetY, offsetZ));
+                            new ImmutableTriple<Integer, Integer, Integer>(offsetX, offsetY, offsetZ));
             newPosition = getFreePosition(conn, solarSystemId, newPosition, rng);
             if (newPosition == null) {
                 ships.remove(i--);
@@ -195,8 +195,8 @@ public class Move extends Procedure {
      * @throws SQLException
      */
     private ArrayList<Ship> getShipsInformation(Connection conn, int solarSystemId, 
-            Triple<Long, Long, Long> minPos, 
-            Triple<Long, Long, Long> maxPos) throws SQLException {
+            ImmutableTriple<Long, Long, Long> minPos, 
+            ImmutableTriple<Long, Long, Long> maxPos) throws SQLException {
         // Prepare variables and statement
         ArrayList<Ship> ships = new ArrayList<Ship>();
         PreparedStatement ps = getPreparedStatement(conn, getShipsAndInformation);
@@ -213,12 +213,12 @@ public class Move extends Procedure {
         try {
             while (rs.next()) {
                 Ship ship = new Ship(rs.getInt(1)); // shipId
-                ship.position = new Triple<Long, Long, Long>(
+                ship.position = new ImmutableTriple<Long, Long, Long>(
                         rs.getLong(2), rs.getLong(3), rs.getLong(4));
                 ship.reachability = rs.getInt(5);
                 ships.add(ship);
                 if (systemMax == null) { // Only need to set it once
-                    systemMax = new Triple<Long, Long, Long>(
+                    systemMax = new ImmutableTriple<Long, Long, Long>(
                             rs.getLong(6), rs.getLong(7), rs.getLong(8));
                 }
             }
@@ -244,8 +244,8 @@ public class Move extends Procedure {
      * MOVE_NOT_SUCCESSFUL if not
      * @throws SQLException
      */
-    public long run(Connection conn, int solarSystemId, Triple<Long, Long, Long> minPos, 
-            Triple<Long, Long, Long> maxPos, Random rng) throws SQLException {
+    public long run(Connection conn, int solarSystemId, ImmutableTriple<Long, Long, Long> minPos, 
+            ImmutableTriple<Long, Long, Long> maxPos, Random rng) throws SQLException {
         ArrayList<Ship> ships = getShipsInformation(conn, solarSystemId, minPos, maxPos);
         if (ships.size() == 0) return MOVE_NO_SHIPS;
         generateMoves(conn, solarSystemId, ships, rng);

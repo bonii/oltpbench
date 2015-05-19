@@ -12,8 +12,9 @@ import com.oltpbenchmark.api.Procedure;
 import com.oltpbenchmark.api.SQLStmt;
 import com.oltpbenchmark.benchmarks.galaxy.GalaxyConstants;
 import com.oltpbenchmark.benchmarks.galaxy.util.Ship;
-import com.oltpbenchmark.util.Triple;
 import com.oltpbenchmark.util.Pair;
+
+import org.apache.commons.lang3.tuple.ImmutableTriple;
 
 /**
  * A class containing the Move procedure
@@ -79,8 +80,8 @@ public class Combat extends Procedure {
      * @return COMBAT_SUCCESSFUL if the procedure was successful
      * @throws SQLException
      */
-    public long run(Connection conn, int solarSystemId, Triple<Long, Long, Long> minPos,
-        Triple<Long, Long, Long> maxPos, Random rng) throws SQLException {
+    public long run(Connection conn, int solarSystemId, ImmutableTriple<Long, Long, Long> minPos,
+            ImmutableTriple<Long, Long, Long> maxPos, Random rng) throws SQLException {
         ArrayList<Ship> ships = getShipInformation(conn, solarSystemId, minPos, maxPos);
         if (ships.size() < 2) return COMBAT_NOT_ENOUGH_SHIPS;
         Pair<Integer, Integer> groupDmgs = getGroupDmgs(ships);
@@ -141,8 +142,9 @@ public class Combat extends Procedure {
      * @return An ArrayList containing all the ships in the region
      * @throws SQLException
      */
-    private ArrayList<Ship> getShipInformation(Connection conn, int solarSystemId, Triple<Long, Long, Long> minPos,
-        Triple<Long, Long, Long> maxPos) throws SQLException {
+    private ArrayList<Ship> getShipInformation(Connection conn, int solarSystemId, 
+            ImmutableTriple<Long, Long, Long> minPos,
+            ImmutableTriple<Long, Long, Long> maxPos) throws SQLException {
         // Get ship information
         PreparedStatement ps = getPreparedStatement(conn, queryShipsInRange);
         ps.setLong(1, minPos.left);

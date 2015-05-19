@@ -6,11 +6,10 @@ import java.util.Random;
 import com.oltpbenchmark.api.Procedure.UserAbortException;
 import com.oltpbenchmark.api.TransactionType;
 import com.oltpbenchmark.api.Worker;
-import com.oltpbenchmark.benchmarks.galaxy.procedures.Combat;
-import com.oltpbenchmark.benchmarks.galaxy.procedures.Idle;
-import com.oltpbenchmark.benchmarks.galaxy.procedures.Move;
+import com.oltpbenchmark.benchmarks.galaxy.procedures.*;
 import com.oltpbenchmark.types.TransactionStatus;
-import com.oltpbenchmark.util.Triple;
+
+import org.apache.commons.lang3.tuple.ImmutableTriple;
 
 /**
  * A class, which handles the work a worker needs to do
@@ -31,8 +30,8 @@ public class GalaxyWorker extends Worker {
         Move proc = getProcedure(Move.class);
         assert(proc != null);
         Random rng = new Random();
-        proc.run(conn, 1, new Triple<Long, Long, Long>(0L, 0L, 0L), 
-                new Triple<Long, Long, Long>(100L * GalaxyConstants.AU, 100L * GalaxyConstants.AU, 100L * GalaxyConstants.AU), rng);
+        proc.run(conn, 1, new ImmutableTriple<Long, Long, Long>(0L, 0L, 0L), 
+                new ImmutableTriple<Long, Long, Long>(100L * GalaxyConstants.AU, 100L * GalaxyConstants.AU, 100L * GalaxyConstants.AU), rng);
         conn.commit();
         return TransactionStatus.SUCCESS;
     }

@@ -10,7 +10,8 @@ import com.oltpbenchmark.api.Procedure;
 import com.oltpbenchmark.api.SQLStmt;
 import com.oltpbenchmark.benchmarks.galaxy.GalaxyConstants;
 import com.oltpbenchmark.benchmarks.galaxy.util.Ship;
-import com.oltpbenchmark.util.Triple;
+
+import org.apache.commons.lang3.tuple.ImmutableTriple;
 
 /**
  * A class containing the Idle procedure
@@ -41,7 +42,7 @@ public class Idle extends Procedure {
      * @throws SQLException
      */
     private ArrayList<Ship> getShips(Connection conn, int solarSystemId, 
-            Triple<Long, Long, Long> minPos, Triple<Long, Long, Long> maxPos)
+            ImmutableTriple<Long, Long, Long> minPos, ImmutableTriple<Long, Long, Long> maxPos)
             throws SQLException {
         ArrayList<Ship> ships = new ArrayList<Ship>();
         PreparedStatement ps = getPreparedStatement(conn, getShipsStmt);
@@ -56,7 +57,7 @@ public class Idle extends Procedure {
         try {
             while (rs.next()) {
                 Ship ship = new Ship(rs.getInt(1));
-                ship.position = new Triple<Long, Long, Long>(
+                ship.position = new ImmutableTriple<Long, Long, Long>(
                         rs.getLong(2), rs.getLong(3), rs.getLong(4)
                         );
                 ship.class_id = rs.getInt(5);
@@ -118,8 +119,8 @@ public class Idle extends Procedure {
      * @return IDLE_SUCCESSFUL if there were no SQLExceptions underway
      * @throws SQLException
      */
-    public long run(Connection conn, int solarSystemId, Triple<Long, Long, Long> minPos,
-        Triple<Long, Long, Long> maxPos) throws SQLException {
+    public long run(Connection conn, int solarSystemId, ImmutableTriple<Long, Long, Long> minPos,
+        ImmutableTriple<Long, Long, Long> maxPos) throws SQLException {
         ArrayList<Ship> ships = getShips(conn, solarSystemId, minPos, maxPos);
         getVisibleObjects(conn, solarSystemId, ships);
         return IDLE_SUCCESSFUL;

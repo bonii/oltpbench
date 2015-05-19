@@ -1,6 +1,6 @@
 package com.oltpbenchmark.benchmarks.galaxy.util;
 
-import com.oltpbenchmark.util.Triple;
+import org.apache.commons.lang3.tuple.ImmutableTriple;
 
 public class Ship {
     
@@ -11,7 +11,7 @@ public class Ship {
     
     // Move
     // TODO triple!
-    public Triple<Long, Long, Long> position;
+    public ImmutableTriple<Long, Long, Long> position;
     public int reachability;
     
     // Combat
