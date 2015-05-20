@@ -70,10 +70,10 @@ public abstract class GalaxyConstants {
     public static final int MAX_MOVE = 110000; 
     
     // Table names
-    public static final String TABLENAME_SHIPS = "ships";
-    public static final String TABLENAME_CLASSES = "classes";
-    public static final String TABLENAME_SOLARSYSTEMS = "solar_systems";
-    public static final String TABLENAME_FITTING = "fitting";
-    public static final String TABLENAME_FITTINGS = "fittings";
+    public static final String TABLENAME_SHIPS = "SHIPS";
+    public static final String TABLENAME_CLASSES = "CLASSES";
+    public static final String TABLENAME_SOLARSYSTEMS = "SOLAR_SYSTEMS";
+    public static final String TABLENAME_FITTING = "FITTING";
+    public static final String TABLENAME_FITTINGS = "FITTINGS";
 
 }
