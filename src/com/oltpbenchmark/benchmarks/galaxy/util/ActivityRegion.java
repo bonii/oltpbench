@@ -16,4 +16,11 @@ public class ActivityRegion {
         this.maxPos         = maxPos;
         this.probabilityVector = probabilityVector;
     }
+    
+    public String toString() {
+        String result = "" + solarSystemId + ",";
+        result += "" + minPos.left + "," + minPos.middle + "," + minPos.right + ",";
+        result += "" + maxPos.left + "," + maxPos.middle + "," + maxPos.right + ",";
+        return result;
+    }
 }

@@ -51,6 +51,9 @@ public class GalaxyBenchmark extends BenchmarkModule {
         } catch (SQLException e) {
             LOG.error("Unexpected error when starting benchmark: ", e);
         }
+        for (ActivityRegion region : regions) {
+            LOG.info(region.toString());
+        }
 
         for (int i = 0; i < numWorkers; ++i) {
             workers.add(new GalaxyWorker(this, i, regions));
