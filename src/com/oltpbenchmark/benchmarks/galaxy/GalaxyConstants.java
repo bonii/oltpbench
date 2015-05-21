@@ -68,7 +68,10 @@ public abstract class GalaxyConstants {
     public static final int NUM_FITTING_TYPES = 2;
     public static final int FITTING_TYPE_OFFENSIVE = 0;
     public static final int FITTING_TYPE_DEFENSIVE = 1;
-    public static final int MAX_FITTING_VALUE = 1000;
+    public static final int MIN_FITTING_VALUE_DEFENSIVE = 25;
+    public static final int MAX_FITTING_VALUE_DEFENSIVE = 50;
+    public static final int MIN_FITTING_VALUE_OFFENSIVE = 24;
+    public static final int MAX_FITTING_VALUE_OFFENSIVE = 1400;
 
     // Runtime variables
     public static final int MAX_MOVE = 110000;

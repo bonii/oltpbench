@@ -31,7 +31,7 @@ import org.apache.log4j.Logger;
 public class GalaxyBenchmark extends BenchmarkModule {
 
     private static final Logger LOG = Logger.getLogger(GalaxyBenchmark.class);
-    
+
     /**
      * Creates a new instance of the GalaxyBenchmark class
      * @param workConf The configuration the benchmark will run with
@@ -77,9 +77,9 @@ public class GalaxyBenchmark extends BenchmarkModule {
      * Generates ActivityRegions for the benchmark
      * @param numWorkers number of workers in use
      * @return an ArrayList of ActivityRegions.
-     * @throws SQLException 
+     * @throws SQLException
      */
-    private ArrayList<ActivityRegion> generateActivityRegions(int numWorkers) 
+    private ArrayList<ActivityRegion> generateActivityRegions(int numWorkers)
             throws SQLException {
         Connection conn = getLastConnection();
         if (conn == null) conn = makeConnection();
@@ -97,7 +97,7 @@ public class GalaxyBenchmark extends BenchmarkModule {
         } finally {
             rs.close();
         }
-        int regionsPerSolarSystem = 2 * numWorkers / solarSystems.size();
+        int regionsPerSolarSystem = 10;
         for (SolarSystem solar : solarSystems) {
             regions.addAll(getSolarRegions(regionsPerSolarSystem, solar));
         }
@@ -111,14 +111,13 @@ public class GalaxyBenchmark extends BenchmarkModule {
      */
     private ArrayList<ActivityRegion> getSolarRegions(int numRegions, SolarSystem solar) {
         ArrayList<ActivityRegion> regions = new ArrayList<ActivityRegion>();
-        Long sizeX = solar.xMax / Math.max(2, numRegions / 2);
-        Long sizeY = solar.yMax / Math.max(2, numRegions / 2);
-        Long sizeZ = solar.zMax / Math.max(2, numRegions / 2);
+        Long solarVolume = solar.xMax * solar.yMax * solar.zMax;
+        Long size = (long) Math.cbrt(solarVolume * 30 / 100);
+        Long sizeX = size;
+        Long sizeY = size;
+        Long sizeZ = size;
         Random rng = new Random();
         for (int i = 0; i < numRegions; i++) {
-           /*Long xPos = rng.nextLong() % (solar.xMax - sizeX);
-            Long yPos = rng.nextLong() % (solar.yMax - sizeY);
-            Long zPos = rng.nextLong() % (solar.zMax - sizeZ);*/
             Long xPos = GalaxyUtil.nextLong(rng, solar.xMax - sizeX);
             Long yPos = GalaxyUtil.nextLong(rng, solar.yMax - sizeY);
             Long zPos = GalaxyUtil.nextLong(rng, solar.zMax - sizeZ);
