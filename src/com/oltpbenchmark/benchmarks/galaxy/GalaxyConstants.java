@@ -56,7 +56,7 @@ public abstract class GalaxyConstants {
     public static final long MAX_REACHABILITY = AU / 2;
     public static final int MIN_HEALTH = 500;
     public static final int MAX_HEALTH = 2200000;
-    public static final int MIN_FITTINGS = 0;
+    public static final int MIN_FITTINGS = 1;
     public static final int MAX_FITTINGS = 21;
     // TODO random names maybe?
     public static final String[] classes = new String[] {
