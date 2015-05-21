@@ -63,14 +63,14 @@ public class GalaxyLoader extends Loader {
             classFittings[i] = GalaxyUtil.randInt(
                     GalaxyConstants.MIN_FITTINGS,
                     GalaxyConstants.MAX_FITTINGS, rng);
-            int reachability = GalaxyUtil.randInt(
+            long reachability = GalaxyUtil.randLong(
                     GalaxyConstants.MIN_REACHABILITY,
                     GalaxyConstants.MAX_REACHABILITY, rng);
 
             // Set values
             ps.setInt(1, i + 1); // Class ID (cid)
             ps.setString(2, GalaxyConstants.classes[0]); // Class name
-            ps.setInt(3, reachability);
+            ps.setLong(3, reachability);
             ps.setInt(4, classHealths[i]);
             ps.setInt(5, classFittings[i]);
             ps.addBatch();

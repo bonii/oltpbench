@@ -58,9 +58,9 @@ public class Move extends Procedure {
      * @param moveOffset The offset that the ship is trying to move
      */
     private void capToReachability(Ship ship, ImmutableTriple<Integer, Integer, Integer> moveOffset) {
-        int offsetX;
-        int offsetY;
-        int offsetZ;
+        long offsetX;
+        long offsetY;
+        long offsetZ;
 
         // Cap to reachability
         if (moveOffset.left < 0) {
@@ -160,7 +160,7 @@ public class Move extends Procedure {
                 Ship ship = new Ship(rs.getInt(1)); // shipId
                 ship.position = new ImmutableTriple<Long, Long, Long>(
                         rs.getLong(2), rs.getLong(3), rs.getLong(4));
-                ship.reachability = rs.getInt(5);
+                ship.reachability = rs.getLong(5);
                 ships.add(ship);
                 if (systemMax == null) { // Only need to set it once
                     systemMax = new ImmutableTriple<Long, Long, Long>(

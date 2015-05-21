@@ -8,7 +8,7 @@ public class Ship {
 
     // Move
     public ImmutableTriple<Long, Long, Long> position;
-    public int reachability;
+    public long reachability;
 
     // Combat
     public int healthPoints;
