@@ -6,17 +6,13 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 import java.lang.Math;
 
-import com.oltpbenchmark.DBWorkload;
 import com.oltpbenchmark.WorkloadConfiguration;
 import com.oltpbenchmark.api.BenchmarkModule;
 import com.oltpbenchmark.api.Loader;
-import com.oltpbenchmark.api.SQLStmt;
-import com.oltpbenchmark.api.TransactionType;
 import com.oltpbenchmark.api.Worker;
 import com.oltpbenchmark.benchmarks.galaxy.procedures.Move;
 import com.oltpbenchmark.benchmarks.galaxy.util.ActivityRegion;
@@ -132,56 +128,11 @@ public class GalaxyBenchmark extends BenchmarkModule {
                 new ImmutableTriple<Long, Long, Long> (xPos, yPos, zPos);
             ImmutableTriple<Long, Long, Long> maxPos =
                 new ImmutableTriple<Long, Long, Long> (xPos + sizeX, yPos + sizeY, zPos + sizeZ);
-            HashMap<String, Integer> probabilityVector = getProbabilityVector(minPos, maxPos, solar.securityLevel);
 
-            regions.add(new ActivityRegion(solar.solarSystemId, minPos, maxPos, probabilityVector));
+            regions.add(new ActivityRegion(solar.solarSystemId, minPos, maxPos));
         }
 
         return regions;
     }
 
-    private HashMap<String, Integer> getProbabilityVector(ImmutableTriple<Long, Long, Long> minPos,
-            ImmutableTriple<Long, Long, Long> maxPos, int securityLevel) {
-    	HashMap<String, Integer> probVec = new HashMap<String, Integer>();
-    	for (TransactionType transType : workConf.getTransTypes()) {
-    	    if (transType.getName().equals("Combat")) probVec.put("combat", getCombatProb(securityLevel));
-    	    else if (transType.getName().equals("Move")) probVec.put("move", 25);
-    	    else if (transType.getName().equals("Idle")) probVec.put("idle", getIdleProb(securityLevel));
-    	    // String switching only allowed in java 1.7 or newer :/
-    		/*switch(transType.getName()) {
-    		case "Combat":
-    			probVec.put("combat", getCombatProb(securityLevel));
-                break;
-    		case "Move":
-                probVec.put("move", 25);
-                break;
-            case "Idle":
-            	probVec.put("idle", getIdleProb(securityLevel));
-                break;
-            default:
-                break;
-    		}*/
-    	}
-        return probVec;
-    }
-
-    private Integer getCombatProb(int securityLevel) {
-        if (securityLevel <= 0) {
-            return 30;
-        } else if (securityLevel > 0 && securityLevel <= 4) {
-            return 20;
-        } else {
-            return 10;
-        }
-    }
-
-    private Integer getIdleProb(int securityLevel) {
-        if (securityLevel <= 0) {
-            return 1;
-        } else if (securityLevel > 0 && securityLevel <= 4) {
-            return 5;
-        } else {
-            return 10;
-        }
-    }
 }

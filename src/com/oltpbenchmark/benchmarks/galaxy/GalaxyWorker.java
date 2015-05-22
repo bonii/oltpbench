@@ -1,7 +1,6 @@
 package com.oltpbenchmark.benchmarks.galaxy;
 
 import java.sql.SQLException;
-import java.util.HashMap;
 import java.util.Random;
 import java.util.ArrayList;
 
@@ -12,16 +11,15 @@ import com.oltpbenchmark.benchmarks.galaxy.procedures.*;
 import com.oltpbenchmark.benchmarks.galaxy.util.ActivityRegion;
 import com.oltpbenchmark.types.TransactionStatus;
 
-import org.apache.commons.lang3.tuple.ImmutableTriple;
+import org.apache.log4j.Logger;
 
 /**
  * A class, which handles the work a worker needs to do
  */
 public class GalaxyWorker extends Worker {
-    private int currentRegion;
-    private int i;
-    private int totalScore;
-    private ActivityRegion region;
+
+    private static final Logger LOG = Logger.getLogger(GalaxyWorker.class);
+
     private final ArrayList<ActivityRegion> regions;
     private final Random rng;
 
@@ -34,66 +32,30 @@ public class GalaxyWorker extends Worker {
         super(benchmarkModule, id);
         this.rng = new Random();
         this.regions = regions;
-        this.i = 0;
-        chooseRegion();
     }
 
     @Override
     protected TransactionStatus executeWork(TransactionType txnType) throws UserAbortException, SQLException {
-        if (this.i > 10) {
-            chooseRegion();
-            this.i = 0;
-        }
-        int k = this.rng.nextInt(this.totalScore);
-        HashMap<String, Integer> probVec = this.region.probabilityVector;
         long returncode;
-        if (k < probVec.get("combat")) {
-        	Combat proc = getProcedure(Combat.class);
-        	assert(proc != null);
-            returncode = proc.run(conn, this.region.solarSystemId, this.region.minPos, this.region.maxPos, new Random());
+        try {
+            GalaxyProcedure proc = (GalaxyProcedure) this.getProcedure(txnType.getProcedureClass());
+            assert(proc != null);
+            ActivityRegion region = getActivityRegion(txnType.getName());
+            returncode = proc.run(conn, region.solarSystemId, region.minPos, region.maxPos, new Random());
+        } catch (ClassCastException ex) {
+            LOG.error("Given invalid transaction type", ex);
+            conn.rollback();
+            return TransactionStatus.RETRY_DIFFERENT;
+        }
             conn.commit();
-        	if (returncode != Combat.COMBAT_SUCCESSFUL)
-        	    return TransactionStatus.USER_ABORTED;
-        	else
-        	    return TransactionStatus.SUCCESS;
-        }
-        k -= probVec.get("combat");
-        if (k < probVec.get("idle")) {
-        	Idle proc = getProcedure(Idle.class);
-        	assert(proc != null);
-        	returncode = proc.run(conn, this.region.solarSystemId, this.region.minPos, this.region.maxPos);
-        	conn.commit();
-        	return TransactionStatus.SUCCESS;
-        }
-        k -= probVec.get("idle");
-        if (k < probVec.get("move")) {
-        	Move proc = getProcedure(Move.class);
-        	assert(proc != null);
-            returncode = proc.run(conn, this.region.solarSystemId, this.region.minPos, this.region.maxPos, new Random());
-            conn.commit();
-        	if (returncode != Move.MOVE_SUCCESSFUL)
-        	    return TransactionStatus.USER_ABORTED;
-        	else
-        	    return TransactionStatus.SUCCESS;
-        }
-        i++;
-        return TransactionStatus.RETRY;
+        if (returncode != 0)
+    	    return TransactionStatus.USER_ABORTED;
+        else
+            return TransactionStatus.SUCCESS;
     }
 
-    private int getTotalScore() {
-        int total = 0;
-        HashMap<String, Integer> probVec = this.region.probabilityVector;
-        total += probVec.get("combat");
-        total += probVec.get("move");
-        total += probVec.get("idle");
-        return total;
+    private ActivityRegion getActivityRegion(String transactionName) {
+        return regions.get(this.rng.nextInt(regions.size()));
     }
-
-    private void chooseRegion() {
-        int i = this.rng.nextInt(this.regions.size());
-        this.region = regions.get(i);
-        this.totalScore = getTotalScore();
-    }
-
 
 }
