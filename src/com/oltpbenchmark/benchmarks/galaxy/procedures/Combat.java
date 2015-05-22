@@ -45,18 +45,20 @@ public class Combat extends Procedure {
         "SUM(CASE WHEN fitting_type = " + GalaxyConstants.FITTING_TYPE_DEFENSIVE + 
         " THEN fitting_value ELSE 0 END) as defensive " +
         "FROM " + GalaxyConstants.TABLENAME_SHIPS + " " +
-        "JOIN " + GalaxyConstants.TABLENAME_FITTINGS + " " +
-        "ON " + GalaxyConstants.TABLENAME_SHIPS + ".ship_id " +
-        "= " + GalaxyConstants.TABLENAME_FITTINGS + ".ship_id " +
-        "JOIN " + GalaxyConstants.TABLENAME_FITTING + " " + 
-        "ON " + GalaxyConstants.TABLENAME_FITTINGS + ".fitting_id " +
-        "= " + GalaxyConstants.TABLENAME_FITTING + ".fitting_id " + 
+        "LEFT JOIN " + GalaxyConstants.TABLENAME_FITTINGS + " " +
+        "ON (" + GalaxyConstants.TABLENAME_SHIPS + ".ship_id " +
+        "= " + GalaxyConstants.TABLENAME_FITTINGS + ".ship_id) " +
+        "LEFT JOIN " + GalaxyConstants.TABLENAME_FITTING + " " + 
+        "ON (" + GalaxyConstants.TABLENAME_FITTINGS + ".fitting_id " +
+        "= " + GalaxyConstants.TABLENAME_FITTING + ".fitting_id) " + 
         "WHERE position_x BETWEEN ? AND ? " + 
         "AND position_y BETWEEN ? AND ? " +
         "AND position_z BETWEEN ? AND ? " +
         "AND solar_system_id = ? " +
         "GROUP BY " + GalaxyConstants.TABLENAME_SHIPS + ".ship_id;"
     );
+    
+    public final String getShipCount = "SELECT COUNT(*) FROM " + GalaxyConstants.TABLENAME_SHIPS + " WHERE solar_system_id = 0;"; //for debugging
     
     // Update the ship with the given ship_ids information
     public final SQLStmt updateShip = new SQLStmt(
@@ -179,6 +181,8 @@ public class Combat extends Procedure {
      */
     private void updateShips(Connection conn, ArrayList<Ship> ships) 
             throws SQLException {
+        int alivechanges = 0; //for hsql
+        int deadchanges = 0;  //for hsql
         PreparedStatement shipUpdates = getPreparedStatement(conn, updateShip);
         PreparedStatement shipDeletes = getPreparedStatement(conn, deleteShip);
         PreparedStatement fittingsDeletes = getPreparedStatement(conn, deleteFittings);
@@ -188,15 +192,19 @@ public class Combat extends Procedure {
                 shipDeletes.addBatch();
                 fittingsDeletes.setInt(1, ship.shipId);
                 fittingsDeletes.addBatch();
+                deadchanges++;
             } else {
                 shipUpdates.setInt(1, ship.healthPoints);
                 shipUpdates.setInt(2, ship.shipId);
                 shipUpdates.addBatch();
+                alivechanges++;
             }
         }
-        shipUpdates.executeBatch();
-        fittingsDeletes.executeBatch();
-        shipDeletes.executeBatch();
+        if (alivechanges > 0) shipUpdates.executeBatch();
+        if (deadchanges > 0) {
+            fittingsDeletes.executeBatch();
+            shipDeletes.executeBatch();
+        }
     }
 
 }

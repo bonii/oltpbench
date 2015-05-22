@@ -55,7 +55,7 @@ public class TestCombat extends TestCase {
     public final String deleteTmpFittings = "DELETE FROM " + fittings +
             " WHERE fittings_id = ?;";
     
-   //public final String getShipCount = "SELECT COUNT(*) FROM " + ships + ";"; //for later use
+    public final String getShipCount = "SELECT COUNT(*) FROM " + ships + " WHERE solar_system_id = 0;";
     public final String getShipHealth = "SELECT health_points FROM " + ships + 
             " WHERE ship_id = ?;";
     
@@ -137,31 +137,36 @@ public class TestCombat extends TestCase {
         ps.execute();
     }
     
-    private void combatDefined(int solarsystem, Long shipsize) throws SQLException {
+    private int combatDefined(int solarsystem, Long shipsize, int expected) throws SQLException {
         Long zerolong = new Long(0);
         ImmutableTriple<Long, Long, Long> startpos = new ImmutableTriple<Long, Long, Long>(zerolong,zerolong,zerolong);
         ImmutableTriple<Long, Long, Long> endpos = new ImmutableTriple<Long, Long, Long>(shipsize,shipsize,shipsize);
-        assertEquals("Combat should be successfull", 0,
+        assertEquals("Combat gave expected result", expected,
                 combatProc.run(this.conn, solarsystem, startpos, endpos, rng)); //TODO change 0 here HERE!
+        return expected;
     }
     
     /**
      * Gets the health points from all ships in shipid array
      * @throws SQLException
      */
-    private int[] getHealth(int[] shipid) throws SQLException {
+    private int[] getHealth(int[] shipid, int[] hp) throws SQLException {
         PreparedStatement ps = null;
         ResultSet tmp = null;
         int[] health = new int[shipid.length];
         for (int i = 0; i < shipid.length; i++) {
-            ps = conn.prepareStatement(getShipHealth);
-            ps.setInt(1, shipid[i]);
-            tmp = ps.executeQuery();
-            try {
-                assertTrue("Query should return something", tmp.next());
-                health[i] = tmp.getInt(1);
-            } finally {
-                tmp.close();
+            if (hp[i] > 0) {
+                ps = conn.prepareStatement(getShipHealth);
+                ps.setInt(1, shipid[i]);
+                tmp = ps.executeQuery();
+                try {
+                    assertTrue("Query should return something", tmp.next());
+                    health[i] = tmp.getInt(1);
+                } finally {
+                    tmp.close();
+                }
+            } else {
+                health[i] = hp[i]; //only for dying ships
             }
         }
         return health;
@@ -171,11 +176,13 @@ public class TestCombat extends TestCase {
             int[] fitid, int[] fitval, int[] fittype ) {
         int caldmg1 = 0;
         int caldmg2 = 0;
-        int[] def = new int[shipid.length];
+        int shipsize = shipid.length;
+        int[] def = new int[shipsize];
+
         for (int i = 0; i < def.length; i++) {
             def[i] = 0;
         }
-        for (int i = 0; i < shipid.length; i++) {
+        for (int i = 0; i < shipsize; i++) {
             for (int k = 0; k < fitsship.length; k++) {
                 if (fitsship[k] == shipid[i]) {
                     for (int j = 0; j < fitid.length; j++) {
@@ -203,7 +210,7 @@ public class TestCombat extends TestCase {
      * Tests simple one ship vs one ship combat
      * @throws SQLException
      */
-    public void testCombat(int combatants, int[] fit_type, int[] fit_value)  throws SQLException {
+    public void testCombat(int combatants, int[] fit_type, int[] fit_value, int expected)  throws SQLException {
         int shipsize = combatants;
         int fitsize = fit_type.length;
         int fitssize = fit_value.length;
@@ -240,28 +247,38 @@ public class TestCombat extends TestCase {
             }
         }
         createTestValues(base, shipid, x, y, z, hp, fitid, fittype, fitval, fitsid, fitsship, fitsfitid);
-        combatDefined(0, new Long(shipsize));
+        
+        int result = combatDefined(0, new Long(shipsize), expected);
+        if (result == 1) { //got expected failure, ends test and continues other
+            removeTestValues(shipid, fitid, fitsid);
+            return;
+        }
+        
         fightvalues calvals = getFightValues(shipid, fitsship, fitsfitid,
              fitid, fitval, fittype);
         int caldmg1 = calvals.getdmg1();
         int caldmg2 = calvals.getdmg2();
         int[] caldef = calvals.getdef();
-        caldmg1 = (int) (caldmg1 / Math.ceil(shipsize/2));
-        caldmg2 = (int) (caldmg2 / Math.floor(shipsize/2));
-        System.out.print(caldmg1 + "\n");
-        System.out.print(caldmg2 + "\n");
+        int groupsize = shipsize/2;
+        caldmg1 = (int) (caldmg1 / (groupsize + (shipsize % 2)));
+        caldmg2 = (int) (caldmg2 / groupsize);
+        int remainingShips = shipsize;
         for (int i = 0; i < shipsize; i++) {
             if (i % 2 == 0) {
-                System.out.print(caldef[i] + "\n");
-                hp[i] = hp[i] - (Math.max(0, caldmg2 - caldef[i]) );
+                hp[i] -= (Math.max(0, caldmg2 - caldef[i]) );
+                if (hp[i] <= 0) remainingShips--;
             } else {
-                System.out.print(caldef[i] + "\n");
-                hp[i] = hp[i] - (Math.max(0, caldmg1 - caldef[i]));
+                hp[i] -= (Math.max(0, caldmg1 - caldef[i]));
+                if (hp[i] <= 0) remainingShips--;
             }
         }
-        int[] posthp = getHealth(shipid);
+        //check for correct number of ships
+        assertEquals("Incorrect number of remaining ships a combat with " + shipsize +
+                " combatants", 0, shipCount(remainingShips) );
+
+        
+        int[] posthp = getHealth(shipid, hp);
         for (int i = 0; i < shipsize; i++) {
-            System.out.print(posthp[i] + " " + hp[i] + "\n");
             assertTrue("Ship " + shipid[i] + " have incorrect hp after a combat with " + shipsize +
                     " combatants",
                     posthp[i] == hp[i]);
@@ -269,20 +286,29 @@ public class TestCombat extends TestCase {
         removeTestValues(shipid, fitid, fitsid);
     }
     
-    /**
-     * Tests combat where a ship dies
-     * @throws SQLException
-     */
-    public void dyingShip()  throws SQLException {
-        /*
-         * TODO
-         */
+    
+    public int shipCount(int remainingShips) throws SQLException {
+        PreparedStatement ps = conn.prepareStatement(getShipCount);
+        ResultSet rs = ps.executeQuery();
+        try {
+            if (rs.next()) {
+                int remains = rs.getInt(1);
+                if (remains == remainingShips) {
+                    return 0;
+                } else {
+                    return 1;
+                }
+            }
+        } catch (Exception e) {
+            rs.close();
+        }
+        return 1;
     }
 
     /**
      * Sets the connection and procedure variables, and runs all the tests
      * @param conn The connection to the database
-     * @param moveProc The Move procedure
+     * @param combatProc The Combat procedure
      * @throws SQLException
      */
     @Test
@@ -294,27 +320,37 @@ public class TestCombat extends TestCase {
         int[] fitvalue = new int[4];
         fittype[0] = offensive_fitting;
         fittype[1] = defensive_fitting;
-        fitvalue[0] = 50;
-        fitvalue[1] = 40;
-        fitvalue[2] = 60;
-        fitvalue[3] = 40;
-        testCombat(2, fittype, fitvalue);
-        testCombat(7, fittype, fitvalue);
-        testCombat(8, fittype, fitvalue);
-        testCombat(1, fittype, fitvalue);
+        fitvalue[0] = 30;
+        fitvalue[1] = 10;
+        fitvalue[2] = 40;
+        fitvalue[3] = 10;
+        // 2 combatants
+        testCombat(2, fittype, fitvalue, 0);
+        // large and uneven # of combatants
+        testCombat(7, fittype, fitvalue, 0);
+        // large # of combatants
+        testCombat(8, fittype, fitvalue, 0);
+        // too small, expect error
+        testCombat(1, fittype, fitvalue, 1);
 
         //attack only
         fittype[0] = offensive_fitting;
         fittype[1] = offensive_fitting;
-        testCombat(2, fittype, fitvalue);
+        testCombat(2, fittype, fitvalue, 0);
         //defense only
         fittype[0] = defensive_fitting;
         fittype[1] = defensive_fitting;
-        testCombat(2, fittype, fitvalue);
+        testCombat(2, fittype, fitvalue, 0);
+        
+        //dying ships
+        fitvalue[0] = 100;
+        fitvalue[1] = 0;
+        fitvalue[2] = 100;
+        fitvalue[3] = 0;
+        fittype[0] = offensive_fitting;
+        fittype[1] = defensive_fitting;
+        testCombat(2, fittype, fitvalue, 0);
 
-        /*
-         * TODO dyingShip();
-         */
 
     }
     class fightvalues {

@@ -23,7 +23,7 @@ public class TestGalaxyWorker extends AbstractTestWorker<GalaxyBenchmark> {
     
     public void testMove() throws SQLException, Exception {
         this.benchmark.createDatabase();
-        this.benchmark.loadDatabase();
+        //this.benchmark.loadDatabase();
         Worker w = workers.get(0);
         Move proc = w.getProcedure(Move.class);
         if (proc != null) {
@@ -33,7 +33,7 @@ public class TestGalaxyWorker extends AbstractTestWorker<GalaxyBenchmark> {
     
     public void testCombat() throws SQLException, Exception {
         this.benchmark.createDatabase();
-        this.benchmark.loadDatabase();
+        //this.benchmark.loadDatabase();
         Worker w = workers.get(0);
         Combat proc = w.getProcedure(Combat.class);
         if (proc != null) {
