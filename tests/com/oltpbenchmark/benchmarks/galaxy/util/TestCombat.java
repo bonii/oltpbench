@@ -141,7 +141,7 @@ public class TestCombat extends TestCase {
         Long zerolong = new Long(0);
         ImmutableTriple<Long, Long, Long> startpos = new ImmutableTriple<Long, Long, Long>(zerolong,zerolong,zerolong);
         ImmutableTriple<Long, Long, Long> endpos = new ImmutableTriple<Long, Long, Long>(shipsize,shipsize,shipsize);
-        assertEquals("Combat gave expected result", expected,
+        assertEquals("Combat gave unexpected result", expected,
                 combatProc.run(this.conn, solarsystem, startpos, endpos, rng)); //TODO change 0 here HERE!
         return expected;
     }

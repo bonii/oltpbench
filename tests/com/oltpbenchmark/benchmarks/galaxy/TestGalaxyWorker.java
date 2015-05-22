@@ -6,8 +6,10 @@ import java.util.Random;
 import com.oltpbenchmark.api.AbstractTestWorker;
 import com.oltpbenchmark.api.Worker;
 import com.oltpbenchmark.benchmarks.galaxy.procedures.Combat;
+import com.oltpbenchmark.benchmarks.galaxy.procedures.Idle;
 import com.oltpbenchmark.benchmarks.galaxy.procedures.Move;
 import com.oltpbenchmark.benchmarks.galaxy.util.TestCombat;
+import com.oltpbenchmark.benchmarks.galaxy.util.TestIdle;
 import com.oltpbenchmark.benchmarks.galaxy.util.TestMove;
 
 /**
@@ -18,7 +20,7 @@ public class TestGalaxyWorker extends AbstractTestWorker<GalaxyBenchmark> {
     @Override
     protected void setUp() throws Exception {
         super.setUp(GalaxyBenchmark.class, TestGalaxyBenchmark.PROC_CLASSES);
-        conn.setAutoCommit(false);
+        conn.setAutoCommit(true);
     }
     
     public void testMove() throws SQLException, Exception {
@@ -38,6 +40,16 @@ public class TestGalaxyWorker extends AbstractTestWorker<GalaxyBenchmark> {
         Combat proc = w.getProcedure(Combat.class);
         if (proc != null) {
             new TestCombat().run(conn, proc, new Random());
+        }
+    }
+    
+    public void testIdle() throws SQLException, Exception {
+        this.benchmark.createDatabase();
+        //this.benchmark.loadDatabase();
+        Worker w = workers.get(0);
+        Idle proc = w.getProcedure(Idle.class);
+        if (proc != null) {
+            new TestIdle().run(conn, proc, new Random());
         }
     }
     
