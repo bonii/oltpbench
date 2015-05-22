@@ -18,7 +18,7 @@ import org.apache.commons.lang3.tuple.ImmutableTriple;
 /**
  * A class containing the Move procedure
  */
-public class Move extends Procedure {
+public class Move extends GalaxyProcedure {
 
     // Potential return codes
     public static final long MOVE_SUCCESSFUL = 0;

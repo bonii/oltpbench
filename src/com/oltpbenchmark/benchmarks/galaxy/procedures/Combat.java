@@ -19,7 +19,7 @@ import com.oltpbenchmark.util.Pair;
 /**
  * A class containing the Move procedure
  */
-public class Combat extends Procedure {
+public class Combat extends GalaxyProcedure {
 
     // Potential return codes
     public static final long COMBAT_SUCCESSFUL = 0;
