@@ -96,9 +96,9 @@ public class GalaxyBenchmark extends BenchmarkModule {
         } finally {
             rs.close();
         }
-        int regionsPerSolarSystem = 2 * numWorkers / solarSystems.size();
+        int regionsPerSolarSystem = Math.max(10, 10 * numWorkers / solarSystems.size());
         for (SolarSystem solar : solarSystems) {
-            regions.addAll(getSolarRegions(regionsPerSolarSystem, solar));
+            regions.addAll(getSolarRegions(regionsPerSolarSystem, numWorkers, solar));
         }
         return regions;
     }
@@ -108,13 +108,13 @@ public class GalaxyBenchmark extends BenchmarkModule {
      * @param numRegions number of regions for the solar system
      * @param solar the SolarSystem object for the solar system
      */
-    private ArrayList<ActivityRegion> getSolarRegions(int numRegions, SolarSystem solar) {
+    private ArrayList<ActivityRegion> getSolarRegions(int numRegions, int numWorkers, SolarSystem solar) {
         ArrayList<ActivityRegion> regions = new ArrayList<ActivityRegion>();
         double xMax = solar.xMax.floatValue();
         double yMax = solar.yMax.floatValue();
         double zMax = solar.zMax.floatValue();
         double solarVolume = xMax * yMax * zMax;
-        Long size = (long) Math.cbrt(solarVolume * numRegions);
+        Long size = (long) (Math.cbrt(solarVolume / numWorkers));
         Long sizeX = size;
         Long sizeY = size;
         Long sizeZ = size;

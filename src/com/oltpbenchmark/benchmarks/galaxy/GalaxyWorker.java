@@ -47,7 +47,7 @@ public class GalaxyWorker extends Worker {
             conn.rollback();
             return TransactionStatus.RETRY_DIFFERENT;
         }
-            conn.commit();
+        conn.commit();
         if (returncode != 0)
     	    return TransactionStatus.USER_ABORTED;
         else
