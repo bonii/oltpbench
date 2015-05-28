@@ -75,3 +75,4 @@ CREATE TABLE fittings
     fittings_id
   )
 );
+CREATE INDEX idx_fittings_shipid ON fittings(ship_id);

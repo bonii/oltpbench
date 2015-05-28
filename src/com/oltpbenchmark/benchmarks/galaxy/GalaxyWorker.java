@@ -49,7 +49,7 @@ public class GalaxyWorker extends Worker {
         }
         conn.commit();
         if (returncode != 0)
-    	    return TransactionStatus.USER_ABORTED;
+    	    return TransactionStatus.RETRY;
         else
             return TransactionStatus.SUCCESS;
     }

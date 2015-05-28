@@ -70,6 +70,13 @@ public class GalaxyBenchmark extends BenchmarkModule {
     private final String querySolarSystems= "SELECT * FROM " +
         GalaxyConstants.TABLENAME_SOLARSYSTEMS + ";"
         ;
+    
+    private final String queryShips = "SELECT COUNT(*) FROM " +
+        GalaxyConstants.TABLENAME_SHIPS + " WHERE " +
+        "position_x BETWEEN ? AND ? AND " +
+        "position_y BETWEEN ? AND ? AND " +
+        "position_z BETWEEN ? AND ? AND " +
+        "solar_system_id = ?;";
 
 
     /**
@@ -96,9 +103,9 @@ public class GalaxyBenchmark extends BenchmarkModule {
         } finally {
             rs.close();
         }
-        int regionsPerSolarSystem = Math.max(10, 10 * numWorkers / solarSystems.size());
+        int regionsPerSolarSystem = Math.max(10, 20 * numWorkers / solarSystems.size());
         for (SolarSystem solar : solarSystems) {
-            regions.addAll(getSolarRegions(regionsPerSolarSystem, numWorkers, solar));
+            regions.addAll(getSolarRegions(regionsPerSolarSystem, conn, solar));
         }
         return regions;
     }
@@ -108,13 +115,14 @@ public class GalaxyBenchmark extends BenchmarkModule {
      * @param numRegions number of regions for the solar system
      * @param solar the SolarSystem object for the solar system
      */
-    private ArrayList<ActivityRegion> getSolarRegions(int numRegions, int numWorkers, SolarSystem solar) {
+    private ArrayList<ActivityRegion> getSolarRegions(int numRegions, Connection conn, SolarSystem solar) 
+            throws SQLException {
         ArrayList<ActivityRegion> regions = new ArrayList<ActivityRegion>();
         double xMax = solar.xMax.floatValue();
         double yMax = solar.yMax.floatValue();
         double zMax = solar.zMax.floatValue();
         double solarVolume = xMax * yMax * zMax;
-        Long size = (long) (Math.cbrt(solarVolume / numWorkers));
+        Long size = (long) (Math.cbrt(solarVolume / numRegions)*1.2);
         Long sizeX = size;
         Long sizeY = size;
         Long sizeZ = size;
@@ -129,7 +137,28 @@ public class GalaxyBenchmark extends BenchmarkModule {
             ImmutableTriple<Long, Long, Long> maxPos =
                 new ImmutableTriple<Long, Long, Long> (xPos + sizeX, yPos + sizeY, zPos + sizeZ);
 
-            regions.add(new ActivityRegion(solar.solarSystemId, minPos, maxPos));
+            int count = 0;
+            PreparedStatement ps = conn.prepareStatement(queryShips);
+            ps.setLong(1, minPos.left);
+            ps.setLong(2, maxPos.left);
+            ps.setLong(3, minPos.middle);
+            ps.setLong(4, maxPos.middle);
+            ps.setLong(5, minPos.right);
+            ps.setLong(6, maxPos.right);
+            ps.setInt(7, solar.solarSystemId);
+            ResultSet rs = ps.executeQuery();
+            try {
+                if (rs.next())
+                    count = rs.getInt(1);
+                else
+                    throw new SQLException();
+            } finally {
+                rs.close();
+            }
+            if (count <= 1)
+                i--;
+            else
+                regions.add(new ActivityRegion(solar.solarSystemId, minPos, maxPos));
         }
 
         return regions;
