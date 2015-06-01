@@ -70,7 +70,7 @@ public class GalaxyBenchmark extends BenchmarkModule {
     private final String querySolarSystems= "SELECT * FROM " +
         GalaxyConstants.TABLENAME_SOLARSYSTEMS + ";"
         ;
-    
+
     private final String queryShips = "SELECT COUNT(*) FROM " +
         GalaxyConstants.TABLENAME_SHIPS + " WHERE " +
         "position_x BETWEEN ? AND ? AND " +
@@ -103,7 +103,8 @@ public class GalaxyBenchmark extends BenchmarkModule {
         } finally {
             rs.close();
         }
-        int regionsPerSolarSystem = Math.max(10, 20 * numWorkers / solarSystems.size());
+        // int regionsPerSolarSystem = Math.max(10, 20 * numWorkers / solarSystems.size());
+            int regionsPerSolarSystem = 20;
         for (SolarSystem solar : solarSystems) {
             regions.addAll(getSolarRegions(regionsPerSolarSystem, conn, solar));
         }
@@ -115,14 +116,14 @@ public class GalaxyBenchmark extends BenchmarkModule {
      * @param numRegions number of regions for the solar system
      * @param solar the SolarSystem object for the solar system
      */
-    private ArrayList<ActivityRegion> getSolarRegions(int numRegions, Connection conn, SolarSystem solar) 
+    private ArrayList<ActivityRegion> getSolarRegions(int numRegions, Connection conn, SolarSystem solar)
             throws SQLException {
         ArrayList<ActivityRegion> regions = new ArrayList<ActivityRegion>();
         double xMax = solar.xMax.floatValue();
         double yMax = solar.yMax.floatValue();
         double zMax = solar.zMax.floatValue();
         double solarVolume = xMax * yMax * zMax;
-        Long size = (long) (Math.cbrt(solarVolume / numRegions)*1.2);
+        Long size = (long) (Math.cbrt(solarVolume*1.2 / numRegions));
         Long sizeX = size;
         Long sizeY = size;
         Long sizeZ = size;
