@@ -22,6 +22,7 @@ public class TestIdle extends TestCase {
     
     private Connection conn;
     private Idle idleProc; //dummy change to Combat
+    private Random rng;
 
     private String ships = GalaxyConstants.TABLENAME_SHIPS;
     private String classes = GalaxyConstants.TABLENAME_CLASSES;
@@ -128,7 +129,7 @@ public class TestIdle extends TestCase {
         ImmutableTriple<Long, Long, Long> startpos = new ImmutableTriple<Long, Long, Long>(zerolong,zerolong,zerolong);
         ImmutableTriple<Long, Long, Long> endpos = new ImmutableTriple<Long, Long, Long>(shipsize,shipsize,shipsize);
         assertEquals("Idle gave unexpected result", 0,
-                idleProc.run(this.conn, solarsystem, startpos, endpos));
+                idleProc.run(this.conn, solarsystem, startpos, endpos, rng));
     }
       
     
@@ -224,6 +225,7 @@ public class TestIdle extends TestCase {
     public void run(Connection conn, Idle proc, Random rng) throws SQLException {
         this.conn = conn;
         this.idleProc = proc;
+        this.rng = rng;
 
         // 1 ship
         testIdle(1);

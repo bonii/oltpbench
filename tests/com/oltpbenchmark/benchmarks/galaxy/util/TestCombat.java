@@ -27,7 +27,10 @@ public class TestCombat extends TestCase {
     private int offensive_fitting = GalaxyConstants.FITTING_TYPE_OFFENSIVE;
     private int defensive_fitting = GalaxyConstants.FITTING_TYPE_DEFENSIVE;
     
-    private int max_fitting_value = GalaxyConstants.MAX_FITTING_VALUE;
+    private int min_fitting_value_def = GalaxyConstants.MIN_FITTING_VALUE_DEFENSIVE;
+    private int min_fitting_value_off = GalaxyConstants.MIN_FITTING_VALUE_OFFENSIVE;
+    private int max_fitting_value_def = GalaxyConstants.MAX_FITTING_VALUE_DEFENSIVE;
+    private int max_fitting_value_off = GalaxyConstants.MAX_FITTING_VALUE_OFFENSIVE;
 
     private String ships = GalaxyConstants.TABLENAME_SHIPS;
     private String classes = GalaxyConstants.TABLENAME_CLASSES;
@@ -358,10 +361,10 @@ public class TestCombat extends TestCase {
         for (int i = 0; i < 25; i++) {
             fittype[0] = randInt(rng, 0, 1);
             fittype[1] = randInt(rng, 0, 1);
-            fitvalue[0] = randInt(rng, 0, max_fitting_value);
-            fitvalue[1] = randInt(rng, 0, max_fitting_value);
-            fitvalue[2] = randInt(rng, 0, max_fitting_value);
-            fitvalue[3] = randInt(rng, 0, max_fitting_value);
+            fitvalue[0] = randInt(rng, min_fitting_value_off, max_fitting_value_off);
+            fitvalue[1] = randInt(rng, min_fitting_value_def, max_fitting_value_def);
+            fitvalue[2] = randInt(rng, min_fitting_value_off, max_fitting_value_off);
+            fitvalue[3] = randInt(rng, min_fitting_value_def, max_fitting_value_def);
             testCombat(randInt(rng, 2, 100), fittype, fitvalue, 0);
         }
 
