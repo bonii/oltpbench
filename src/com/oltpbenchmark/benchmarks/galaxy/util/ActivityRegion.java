@@ -1,7 +1,6 @@
 package com.oltpbenchmark.benchmarks.galaxy.util;
 
 import org.apache.commons.lang3.tuple.ImmutableTriple;
-import java.util.HashMap;
 
 public class ActivityRegion {
     public final int solarSystemId;

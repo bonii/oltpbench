@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.Random;
 import java.lang.Math;
 
-import com.oltpbenchmark.api.Procedure;
 import com.oltpbenchmark.api.SQLStmt;
 import com.oltpbenchmark.benchmarks.galaxy.GalaxyConstants;
 import com.oltpbenchmark.benchmarks.galaxy.util.Ship;
