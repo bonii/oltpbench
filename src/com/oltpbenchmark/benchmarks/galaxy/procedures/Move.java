@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.Random;
 import java.lang.Math;
 
-import com.oltpbenchmark.api.Procedure;
 import com.oltpbenchmark.api.SQLStmt;
 import com.oltpbenchmark.benchmarks.galaxy.GalaxyConstants;
 import com.oltpbenchmark.benchmarks.galaxy.util.Ship;
@@ -68,7 +67,7 @@ public class Move extends GalaxyProcedure {
      * @param moveOffset The offset that the ship is trying to move
      * @return An triple, containing the new position
      */
-    private ImmutableTriple capToReachability(Ship ship, ImmutableTriple<Integer, Integer, Integer> moveOffset) {
+    private void capToReachability(Ship ship, ImmutableTriple<Integer, Integer, Integer> moveOffset) {
         long offsetX;
         long offsetY;
         long offsetZ;
@@ -94,7 +93,7 @@ public class Move extends GalaxyProcedure {
         long positionX = Math.max(Math.min(systemMax.left, ship.position.left + offsetX), 0);
         long positionY = Math.max(Math.min(systemMax.middle, ship.position.middle + offsetY), 0);
         long positionZ = Math.max(Math.min(systemMax.right, ship.position.right + offsetZ), 0);
-        return new ImmutableTriple<Long, Long, Long>(positionX, positionY, positionZ);
+        ship.position = new ImmutableTriple<Long, Long, Long>(positionX, positionY, positionZ);
     }
 
     /**
@@ -108,9 +107,9 @@ public class Move extends GalaxyProcedure {
      * @throws SQLException
      */
     private ImmutableTriple<Long, Long, Long> getFreePosition(Connection conn,
-            int solarSystemId, ImmutableTriple<Long, Long, Long> position,
+            int solarSystemId, Ship ship,
             Random rng) throws SQLException {
-
+        ImmutableTriple<Long, Long, Long> position = ship.position;
         ArrayList<ImmutableTriple<Long, Long, Long>> positions =
                 new ArrayList<ImmutableTriple<Long, Long, Long>>();
         for (long i = position.left-1; i < position.left+2; i++) {
@@ -170,8 +169,8 @@ public class Move extends GalaxyProcedure {
             offsetZ *= (rng.nextBoolean()) ? -1 : 1;
 
             // Cap to reachability and check if position is free. Remove if not
-            ImmutableTriple newPosition = capToReachability(ship, new ImmutableTriple<Integer, Integer, Integer>(offsetX, offsetY, offsetZ));
-            newPosition = getFreePosition(conn, solarSystemId, newPosition, rng);
+            capToReachability(ship, new ImmutableTriple<Integer, Integer, Integer>(offsetX, offsetY, offsetZ));
+            ImmutableTriple<Long, Long, Long> newPosition = getFreePosition(conn, solarSystemId, ship, rng);
             if (newPosition == null) {
                 ships.remove(i--);
             } else {
