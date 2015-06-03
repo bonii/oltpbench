@@ -358,7 +358,7 @@ public class TestCombat extends TestCase {
         testCombat(2, fittype, fitvalue, 0);
         
         // random number of combatants and attack/def values
-        for (int i = 0; i < 25; i++) {
+        for (int i = 0; i < 100; i++) {
             fittype[0] = randInt(rng, 0, 1);
             fittype[1] = randInt(rng, 0, 1);
             fitvalue[0] = randInt(rng, min_fitting_value_off, max_fitting_value_off);

@@ -20,12 +20,13 @@ public class TestGalaxyWorker extends AbstractTestWorker<GalaxyBenchmark> {
     @Override
     protected void setUp() throws Exception {
         super.setUp(GalaxyBenchmark.class, TestGalaxyBenchmark.PROC_CLASSES);
+        this.workConf.setScaleFactor(1);
         conn.setAutoCommit(true);
     }
     
     public void testMove() throws SQLException, Exception {
         this.benchmark.createDatabase();
-        //this.benchmark.loadDatabase();
+        this.benchmark.loadDatabase();
         Worker w = workers.get(0);
         Move proc = w.getProcedure(Move.class);
         if (proc != null) {
