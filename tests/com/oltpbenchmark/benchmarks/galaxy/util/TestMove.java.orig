@@ -19,7 +19,7 @@ import org.apache.commons.lang3.tuple.ImmutableTriple;
  * A class that checks the correctness of the Move procedure
  */
 public class TestMove extends TestCase {
-
+    
     private Connection conn;
     private Move moveProc;
     private Random rng;
@@ -32,7 +32,7 @@ public class TestMove extends TestCase {
 
     public final String createTmpClass = "INSERT INTO " + classes +
             " VALUES (0, ?, 1000, 0, 0);";
-    public final String createTmpShip = "INSERT INTO " + ships +
+    public final String createTmpShip = "INSERT INTO " + ships + 
             " VALUES (?, 0, 0, 0, 0, 0, 0);";
     public final String createTmpSystem = "INSERT INTO " + solarsystems +
             " VALUES (0, 100000, 100000, 100000, 0);";
@@ -45,23 +45,23 @@ public class TestMove extends TestCase {
     public final String findShipsInSamePosition = "SELECT position_x, position_y, position_z ssid FROM " +
             ships + " GROUP BY position_x, position_y, position_z, solar_system_id HAVING COUNT(*) > 1;";
     public final String getShipCount = "SELECT COUNT(*) FROM " + ships + ";";
-    public final String getShipPosition = "SELECT position_x, position_y, position_z FROM " + ships +
+    public final String getShipPosition = "SELECT position_x, position_y, position_z FROM " + ships + 
             " WHERE ship_id = ?;";
-    public final String getShipPositionAndReach =
-            "SELECT position_x, position_y, position_z, reachability FROM " + ships +
-            " JOIN " + classes + " ON " + ships + ".class_id = " +
+    public final String getShipPositionAndReach = 
+            "SELECT position_x, position_y, position_z, reachability FROM " + ships + 
+            " JOIN " + classes + " ON " + ships + ".class_id = " + 
             classes + ".class_id WHERE ship_id = ?;";
-    public final String getSystemMaxAndReachability =
-            "SELECT max_position_x, max_position_y, max_position_z, reachability FROM " + ships + " JOIN " +
-            solarsystems + " ON " + ships + ".solar_system_id = " + solarsystems +
+    public final String getSystemMaxAndReachability = 
+            "SELECT max_position_x, max_position_y, max_position_z, reachability FROM " + ships + " JOIN " + 
+            solarsystems + " ON " + ships + ".solar_system_id = " + solarsystems + 
             ".solar_system_id JOIN " + classes + " ON " + ships + ".class_id = " + classes +
             ".class_id WHERE ship_id = ?;";
-
-    public final String getClassReach =
+    
+    public final String getClassReach = 
             "SELECT reachability FROM " + ships + " JOIN " + classes +
             " ON " + ships + ".class_id = " + classes + ".class_id " +
             "WHERE ship_id = ?;";
-    public final String getSystemMax =
+    public final String getSystemMax = 
             "SELECT max_position_x, max_position_y, max_position_z FROM " +
             ships + " JOIN " + solarsystems + " ON " + ships + ".solar_system_id = " +
             solarsystems + ".solar_system_id WHERE ship_id = ?;";
@@ -86,7 +86,7 @@ public class TestMove extends TestCase {
                 position.middle == 0 || position.middle == 1);
         moveDefined(0, 0, -1);
         position = getPosition();
-        assertTrue("Ship z should still be near 0",
+        assertTrue("Ship z should still be near 0", 
                 position.right == 0 || position.right == 1);
 
         long iters = (max.left / reach) + 1;
@@ -105,7 +105,7 @@ public class TestMove extends TestCase {
         position = getPosition();
         assertTrue("Ship y should be near the edge of the system",
                 Math.abs(max.middle - position.middle) <= 1);
-
+        
         iters = (max.right / reach) + 1;
         for (int i = 0; i < iters; i++) {
             moveDefined(0, 0, reach);
@@ -150,7 +150,7 @@ public class TestMove extends TestCase {
         ps.setInt(1, shipID);
         ps.execute();
     }
-
+    
     private int getClassReach() throws SQLException {
         PreparedStatement ps = conn.prepareStatement(getClassReach);
         ps.setInt(1, shipID);
@@ -186,7 +186,7 @@ public class TestMove extends TestCase {
 
     /**
      * Gets the position and reachability of the ship with id TestMove.shipID
-     * @return An integer array containing the position of the ship and its
+     * @return An integer array containing the position of the ship and its 
      * reachability
      * @throws SQLException
      */
@@ -207,9 +207,9 @@ public class TestMove extends TestCase {
     }
 
     /**
-     * Returns the reachability of the ship and the max position in the
+     * Returns the reachability of the ship and the max position in the 
      * solarsystem the ship resides in, from the ship with it TestMove.shipID
-     * @return An integer array containing the reachability of the ship, and
+     * @return An integer array containing the reachability of the ship, and 
      * the maximum position of the solarsystem
      * @throws SQLException
      */
@@ -228,7 +228,7 @@ public class TestMove extends TestCase {
         }
         return maxAndReach;
     }
-
+    
     // TODO make it return a SolarSystem
     private ImmutableTriple<Long, Long, Long> getSystemMax() throws SQLException {
         PreparedStatement ps = conn.prepareStatement(getSystemMax);
@@ -278,13 +278,18 @@ public class TestMove extends TestCase {
      * @param y The relative y value to be moved
      * @throws SQLException
      */
+<<<<<<< HEAD
     private void moveDefined(int x, int y, int z) throws SQLException {
         /* TODO assertEquals("Move should be successfull", 0,
+=======
+    private void moveDefined(int x, int y) throws SQLException {
+        /*assertEquals("Move should be successfull", 0,
+>>>>>>> galaxy_activity-region_no_prob
                 moveProc.run(this.conn, shipID, x, y, rng));*/
     }
 
     /**
-     * Checks that there are no two ships in the database, that has the same
+     * Checks that there are no two ships in the database, that has the same 
      * position and solarsystem id
      * @throws SQLException
      */
@@ -323,12 +328,20 @@ public class TestMove extends TestCase {
      */
     public void oneMove() throws SQLException {
         createTestValues();
+<<<<<<< HEAD
         ImmutableTriple<Long, Long, Long> position = getPosition();
         long newX = position.left + moveStepSize;
         long newY = position.middle + moveStepSize;
         long newZ = position.right + moveStepSize;
         /* TODO assertEquals("Move should be successfull", Move.MOVE_SUCCESSFUL,
+                moveProc.run(this.conn, shipID, moveStepSize, moveStepSize, rng));*/ 
+=======
+        Pair<Integer, Integer> position = getPosition();
+        int newX = position.first + moveStepSize;
+        int newY = position.second + moveStepSize;
+        /*assertEquals("Move should be successfull", Move.MOVE_SUCCESSFUL,
                 moveProc.run(this.conn, shipID, moveStepSize, moveStepSize, rng));*/
+>>>>>>> galaxy_activity-region_no_prob
         position = getPosition();
         assertTrue("X should be near new position",
                 Math.abs(newX - position.left) <= 1);
@@ -374,7 +387,7 @@ public class TestMove extends TestCase {
     }
 
     /**
-     * Tests that the Move procedure will cap the movement of the ship to
+     * Tests that the Move procedure will cap the movement of the ship to 
      * its reachability
      * @throws SQLException
      */

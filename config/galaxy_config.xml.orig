@@ -8,7 +8,12 @@
     <username>carljohnsen</username>
     <password>test</password>
     <isolation>TRANSACTION_SERIALIZABLE</isolation>
+
+<<<<<<< HEAD
+    <scalefactor>1000</scalefactor>
+=======
     <scalefactor>1</scalefactor>
+>>>>>>> galaxy_activity-region_no_prob
 
     <!-- The workload -->
     <terminals>100</terminals>
@@ -19,12 +24,28 @@
           <weights>1,1,1</weights>
           <serial>false</serial>
         </work>
+        <!-- <work>
+          <time>30</time>
+          <rate>unlimited</rate>
+          <weights>0,1,0</weights>
+          <serial>false</serial>
+        </work>
+        <work>
+          <time>30</time>
+          <rate>unlimited</rate>
+          <weights>0,0,1</weights>
+          <serial>false</serial>
+        </work> -->
     </works>
 
     <!-- Voter Procedures declaration -->
     <transactiontypes>
         <transactiontype>
+<<<<<<< HEAD
+        	<name>Move</name>
+=======
         	<name>Combat</name>
+>>>>>>> galaxy_activity-region_no_prob
         </transactiontype>
         <transactiontype>
         	<name>Idle</name>

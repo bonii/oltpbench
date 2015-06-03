@@ -8,7 +8,10 @@ import com.oltpbenchmark.api.Procedure.UserAbortException;
 import com.oltpbenchmark.api.TransactionType;
 import com.oltpbenchmark.api.Worker;
 import com.oltpbenchmark.benchmarks.galaxy.procedures.*;
+<<<<<<< HEAD
+=======
 import com.oltpbenchmark.benchmarks.galaxy.util.ActivityRegion;
+>>>>>>> galaxy_activity-region_no_prob
 import com.oltpbenchmark.types.TransactionStatus;
 
 import org.apache.log4j.Logger;
@@ -36,6 +39,13 @@ public class GalaxyWorker extends Worker {
 
     @Override
     protected TransactionStatus executeWork(TransactionType txnType) throws UserAbortException, SQLException {
+<<<<<<< HEAD
+        Move proc = getProcedure(Move.class);
+        assert(proc != null);
+        Random rng = new Random();
+        proc.run(conn, 1, new ImmutableTriple<Long, Long, Long>(0L, 0L, 0L), 
+                new ImmutableTriple<Long, Long, Long>(100L * GalaxyConstants.AU, 100L * GalaxyConstants.AU, 100L * GalaxyConstants.AU), rng);
+=======
         long returncode;
         try {
             GalaxyProcedure proc = (GalaxyProcedure) this.getProcedure(txnType.getProcedureClass());
@@ -47,6 +57,7 @@ public class GalaxyWorker extends Worker {
             conn.rollback();
             return TransactionStatus.RETRY_DIFFERENT;
         }
+>>>>>>> galaxy_activity-region_no_prob
         conn.commit();
         if (returncode != 0)
     	    return TransactionStatus.RETRY;

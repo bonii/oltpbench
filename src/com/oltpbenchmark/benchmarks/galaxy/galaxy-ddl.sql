@@ -10,7 +10,7 @@ CREATE TABLE classes
 (
   class_id            integer     NOT NULL,
   class_name          varchar(40) NOT NULL,
-  reachability        integer     NOT NULL,
+  reachability        bigint      NOT NULL,
   base_health_points  integer     NOT NULL,
   max_fittings_count  integer     NOT NULL,
   PRIMARY KEY
@@ -75,3 +75,4 @@ CREATE TABLE fittings
     fittings_id
   )
 );
+CREATE INDEX idx_fittings_shipid ON fittings(ship_id);

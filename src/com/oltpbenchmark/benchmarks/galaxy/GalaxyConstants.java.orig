@@ -35,9 +35,15 @@ package com.oltpbenchmark.benchmarks.galaxy;
 public abstract class GalaxyConstants {
 
     // Ships
+<<<<<<< HEAD
+    public static final int NUM_SHIPS = 100;
+    public static final int VISIBLE_RANGE = 250000;
+    
+=======
     public static final int NUM_SHIPS = 1000;
     public static final int VISIBLE_RANGE = 250000;
 
+>>>>>>> galaxy_activity-region_no_prob
     // Solar systems
     public static final long AU = 149600000000L; // According to wolfram
     public static final long MIN_SYSTEM_SIZE = 1 * AU;

@@ -5,7 +5,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-
+import java.util.Random;
 import com.oltpbenchmark.api.Procedure;
 import com.oltpbenchmark.api.SQLStmt;
 import com.oltpbenchmark.benchmarks.galaxy.GalaxyConstants;
@@ -16,11 +16,11 @@ import org.apache.commons.lang3.tuple.ImmutableTriple;
 /**
  * A class containing the Idle procedure
  */
-public class Idle extends Procedure {
-    
+public class Idle extends GalaxyProcedure {
+
     // Possible return codes
     public static final long IDLE_SUCCESSFUL = 0L;
-    
+
     // Get ship id, position and class
     public final SQLStmt getShipsStmt = new SQLStmt(
             "SELECT ship_id, position_x, position_y, position_z, class_id FROM " +
@@ -30,10 +30,10 @@ public class Idle extends Procedure {
             "position_z BETWEEN ? AND ? AND " +
             "solar_system_id = ?;"
     );
-    
+
     /**
      * Returns all ships, that lie within the given region, i.e. minPos and maxPos
-     * 
+     *
      * @param conn The connection the the database
      * @param solarSystemId The solar system the region is in
      * @param minPos The start position of the region
@@ -41,7 +41,7 @@ public class Idle extends Procedure {
      * @return An ArrayList containing all the ships in the region
      * @throws SQLException
      */
-    private ArrayList<Ship> getShips(Connection conn, int solarSystemId, 
+    private ArrayList<Ship> getShips(Connection conn, int solarSystemId,
             ImmutableTriple<Long, Long, Long> minPos, ImmutableTriple<Long, Long, Long> maxPos)
             throws SQLException {
         ArrayList<Ship> ships = new ArrayList<Ship>();
@@ -61,6 +61,7 @@ public class Idle extends Procedure {
                         rs.getLong(2), rs.getLong(3), rs.getLong(4)
                         );
                 ship.class_id = rs.getInt(5);
+                rs.getInt(5); // Dont care about class_id
                 ships.add(ship);
             }
         } finally {
@@ -68,17 +69,17 @@ public class Idle extends Procedure {
         }
         return ships;
     }
-    
+
     /**
      * Gets all the objects, that are within the visible range of each given ship.
      * The result is not used
-     * 
+     *
      * @param conn The connection to the database
      * @param solarSystemId The solar system the ships are in
      * @param ships The ships that should be used
      * @throws SQLException
      */
-    private void getVisibleObjects(Connection conn, int solarSystemId, 
+    private void getVisibleObjects(Connection conn, int solarSystemId,
             ArrayList<Ship> ships) throws SQLException {
         for (Ship ship : ships) {
             PreparedStatement ps = getPreparedStatement(conn, getShipsStmt);
@@ -104,14 +105,15 @@ public class Idle extends Procedure {
             }
         }
     }
-    
+
     // TODO Get locations!
     /**
      * Runs the Idle procedure.
      * <br>
      * Starts by gathering information about all the ships in the given range.
      * Then it gets all objects, that are within the visible range of the ship.
-     * 
+     *
+     *
      * @param conn The connection to the database
      * @param solarSystemId The solar system the region is in
      * @param minPos The start position of the region
@@ -120,7 +122,7 @@ public class Idle extends Procedure {
      * @throws SQLException
      */
     public long run(Connection conn, int solarSystemId, ImmutableTriple<Long, Long, Long> minPos,
-        ImmutableTriple<Long, Long, Long> maxPos) throws SQLException {
+            ImmutableTriple<Long, Long, Long> maxPos, Random rng) throws SQLException {
         ArrayList<Ship> ships = getShips(conn, solarSystemId, minPos, maxPos);
         getVisibleObjects(conn, solarSystemId, ships);
         return IDLE_SUCCESSFUL;

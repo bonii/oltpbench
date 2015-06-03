@@ -63,14 +63,14 @@ public class GalaxyLoader extends Loader {
             classFittings[i] = GalaxyUtil.randInt(
                     GalaxyConstants.MIN_FITTINGS,
                     GalaxyConstants.MAX_FITTINGS, rng);
-            int reachability = GalaxyUtil.randInt(
+            long reachability = GalaxyUtil.randLong(
                     GalaxyConstants.MIN_REACHABILITY,
                     GalaxyConstants.MAX_REACHABILITY, rng);
 
             // Set values
             ps.setInt(1, i + 1); // Class ID (cid)
             ps.setString(2, GalaxyConstants.classes[0]); // Class name
-            ps.setInt(3, reachability);
+            ps.setLong(3, reachability);
             ps.setInt(4, classHealths[i]);
             ps.setInt(5, classFittings[i]);
             ps.addBatch();
@@ -82,6 +82,8 @@ public class GalaxyLoader extends Loader {
         ps = this.conn.prepareStatement(SQLUtil.getInsertSQL(tbl, escapeNames));
         ArrayList<ImmutableTriple<Long, Long, Long>> systemMax =
                 new ArrayList<ImmutableTriple<Long, Long, Long>>();
+        int min_sec;
+        int max_sec;
         for (int i = 0; i < numSolarSystems; i++) {
             // Generate values
             long xMax = GalaxyUtil.randLong(
@@ -93,9 +95,18 @@ public class GalaxyLoader extends Loader {
             long zMax = GalaxyUtil.randLong(
                     GalaxyConstants.MIN_SYSTEM_SIZE,
                     GalaxyConstants.MAX_SYSTEM_SIZE, rng);
-            int security = GalaxyUtil.randInt(
-                    GalaxyConstants.MIN_SECURITY,
-                    GalaxyConstants.MAX_SECURITY, rng);
+            int tmp = rng.nextInt(100);
+            if (tmp > 17) {
+                min_sec = GalaxyConstants.HIGH_MIN_SECURITY;
+                max_sec = GalaxyConstants.HIGH_MAX_SECURITY;
+            } else if(tmp > 24) {
+                min_sec = GalaxyConstants.LOW_MIN_SECURITY;
+                max_sec = GalaxyConstants.LOW_MAX_SECURITY;
+            } else {
+                min_sec = GalaxyConstants.NULL_MIN_SECURITY;
+                max_sec = GalaxyConstants.NULL_MAX_SECURITY;
+            }
+            int security = GalaxyUtil.randInt(min_sec, max_sec, rng);
             systemMax.add(new ImmutableTriple<Long, Long, Long>(xMax, yMax, zMax));
 
             ps.setInt(1, i + 1); // Solarsystem ID(ssid)
@@ -110,10 +121,20 @@ public class GalaxyLoader extends Loader {
         // Fill fitting table
         tbl = getTableCatalog(GalaxyConstants.TABLENAME_FITTING);
         ps = this.conn.prepareStatement(SQLUtil.getInsertSQL(tbl, escapeNames));
+        int fit_type;
+        int fit_value;
         for (int i = 0; i < numFitting; i++) {
             ps.setInt(1, i+1); // Fitting id
-            ps.setInt(2, rng.nextInt(GalaxyConstants.NUM_FITTING_TYPES));
-            ps.setInt(3, rng.nextInt(GalaxyConstants.MAX_FITTING_VALUE) + 1);
+            fit_type = rng.nextInt(GalaxyConstants.NUM_FITTING_TYPES);
+            if (fit_type == 0) {
+                fit_value = GalaxyUtil.randInt(GalaxyConstants.MIN_FITTING_VALUE_OFFENSIVE,
+                                GalaxyConstants.MAX_FITTING_VALUE_OFFENSIVE, rng);
+            } else {
+                fit_value = GalaxyUtil.randInt(GalaxyConstants.MIN_FITTING_VALUE_DEFENSIVE,
+                                GalaxyConstants.MAX_FITTING_VALUE_DEFENSIVE, rng);
+            }
+            ps.setInt(2, fit_type);
+            ps.setInt(3, fit_value);
             ps.addBatch();
         }
         ps.executeBatch();
