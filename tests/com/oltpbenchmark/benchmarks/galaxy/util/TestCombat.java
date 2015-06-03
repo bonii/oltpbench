@@ -26,6 +26,8 @@ public class TestCombat extends TestCase {
     
     private int offensive_fitting = GalaxyConstants.FITTING_TYPE_OFFENSIVE;
     private int defensive_fitting = GalaxyConstants.FITTING_TYPE_DEFENSIVE;
+    
+    private int max_fitting_value = GalaxyConstants.MAX_FITTING_VALUE;
 
     private String ships = GalaxyConstants.TABLENAME_SHIPS;
     private String classes = GalaxyConstants.TABLENAME_CLASSES;
@@ -333,6 +335,7 @@ public class TestCombat extends TestCase {
         // too small, expect error
         testCombat(1, fittype, fitvalue, 1);
 
+
         //attack only
         fittype[0] = offensive_fitting;
         fittype[1] = offensive_fitting;
@@ -350,9 +353,29 @@ public class TestCombat extends TestCase {
         fittype[0] = offensive_fitting;
         fittype[1] = defensive_fitting;
         testCombat(2, fittype, fitvalue, 0);
+        
+        // random number of combatants and attack/def values
+        for (int i = 0; i < 25; i++) {
+            fittype[0] = randInt(rng, 0, 1);
+            fittype[1] = randInt(rng, 0, 1);
+            fitvalue[0] = randInt(rng, 0, max_fitting_value);
+            fitvalue[1] = randInt(rng, 0, max_fitting_value);
+            fitvalue[2] = randInt(rng, 0, max_fitting_value);
+            fitvalue[3] = randInt(rng, 0, max_fitting_value);
+            testCombat(randInt(rng, 2, 100), fittype, fitvalue, 0);
+        }
 
 
     }
+    
+    public int randInt(Random rand, int min, int max) {
+        
+        int randomNum = rand.nextInt((max - min) + 1) + min;
+        
+        return randomNum;
+    }
+    
+    
     class fightvalues {
         int[]def;
         int dmg1;
