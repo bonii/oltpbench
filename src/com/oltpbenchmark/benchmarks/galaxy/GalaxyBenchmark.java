@@ -115,8 +115,7 @@ public class GalaxyBenchmark extends BenchmarkModule {
         double yMax = solar.yMax.floatValue();
         double zMax = solar.zMax.floatValue();
         double solarVolume = xMax * yMax * zMax;
-        Long size = (long) (Math.cbrt(solarVolume*GalaxyConstants.TOTAL_REGION_PCT_PER_SOLAR_SYSTEM
-                             / GalaxyConstants.REGIONS_PER_SOLAR_SYSTEM));
+        Long size = (long) (Math.cbrt(solarVolume*GalaxyConstants.REGION_PCT_OF_SOLAR_SYSTEM));
         Long sizeX = size;
         Long sizeY = size;
         Long sizeZ = size;

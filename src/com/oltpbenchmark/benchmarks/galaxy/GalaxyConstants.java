@@ -75,7 +75,7 @@ public abstract class GalaxyConstants {
 
     // Activity regions
     public static final int REGIONS_PER_SOLAR_SYSTEM = 40;
-    public static final double TOTAL_REGION_PCT_PER_SOLAR_SYSTEM = 1.6;
+    public static final double REGION_PCT_OF_SOLAR_SYSTEM = 0.04;
 
     // Runtime variables
     public static final int MAX_MOVE = 110000;
