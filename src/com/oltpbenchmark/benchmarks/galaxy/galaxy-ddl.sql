@@ -48,9 +48,7 @@ CREATE TABLE ships
     ship_id
   )
 );
-CREATE INDEX idx_ships_x ON ships (position_x);
-CREATE INDEX idx_ships_y ON ships (position_y);
-CREATE INDEX idx_ships_z ON ships (position_z);
+CREATE INDEX idx_ships_x ON ships (solar_system_id, position_x);
 
 -- fitting table holds information about a fitting
 CREATE TABLE fitting
