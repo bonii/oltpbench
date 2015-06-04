@@ -7,7 +7,7 @@
     <DBUrl>jdbc:postgresql://localhost:5432/voter</DBUrl>
     <username>tester</username>
     <password>xxx</password>
-    <isolation>TRANSACTION_READ_COMMITTED</isolation>
+    <isolation>TRANSACTION_REPEATABLE_READ</isolation>
 
     <scalefactor>1</scalefactor>
 
@@ -17,7 +17,7 @@
         <work>
           <time>300</time>
           <rate>10000</rate>
-          <weights>100</weights>
+          <weights>100,100,100</weights>
           <serial>false</serial>
         </work>
     </works>
@@ -26,6 +26,12 @@
     <transactiontypes>
         <transactiontype>
                 <name>Move</name>
+        </transactiontype>
+        <transactiontype>
+                <name>Combat</name>
+        </transactiontype>
+        <transactiontype>
+                <name>Idle</name>
         </transactiontype>
     </transactiontypes>
 </parameters>
