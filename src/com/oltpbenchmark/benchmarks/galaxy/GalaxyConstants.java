@@ -74,7 +74,7 @@ public abstract class GalaxyConstants {
     public static final int MAX_FITTING_VALUE_OFFENSIVE = 1400;
 
     // Activity regions
-    public static final int REGIONS_PER_SOLAR_SYSTEM = 40;
+    public static final int REGIONS_PER_SOLAR_SYSTEM = 27;
     public static final double REGION_PCT_OF_SOLAR_SYSTEM = 0.04;
 
     // Runtime variables
